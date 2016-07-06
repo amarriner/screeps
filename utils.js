@@ -17,20 +17,36 @@ var utils = {
     // Harvest from the nearest energy source
     //
     /** param {Creep} creep **/
-    harvest: function(creep) {
+    /** param {Position} destination **/
+    harvest: function(creep, destination) {
+        
+        var source;
+        var sources = [];
+        
+        //
+        // If a destination was passed, find the source closest to it
+        //
+        if (destination) {
+            source = destination.pos.findClosestByPath(FIND_SOURCES);
+            
+            if (source) {
+                sources.push(source);
+            }
+        }
         
         //
         // Find all energy sources in this room
         //
-        var d = this.distance;
-        var sources = creep.room.find(FIND_SOURCES).sort(
-        //console.log('TEST: ' + this.distance(creep.pos, sources[0].pos));
-            function(a, b) {
-                return d(creep.pos, a.pos) -
-                       d(creep.pos, b.pos);
-            }    
-        );
-            
+        if (! source) {
+            var d = this.distance;
+            sources = creep.room.find(FIND_SOURCES).sort(
+                function(a, b) {
+                    return d(creep.pos, a.pos) -
+                           d(creep.pos, b.pos);
+                }    
+            );
+        }
+        
         //
         // Attempt to harvest the closest source that is not already being 
         // harvested by 3 other creeps
@@ -100,8 +116,16 @@ var utils = {
             
             var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == creepType);
             if (creeps.length < constants.maxCreeps[creepType]) {
-                console.log('Created new ' + creepType + ' :: ' + (parseInt(creeps.length) + 1) + '/' + constants.maxCreeps[creepType]);
-                Game.spawns.Spawn1.createCreep([WORK, MOVE, CARRY], undefined, { role: creepType });
+                
+                var result = Game.spawns.Spawn1.createCreep([WORK, MOVE, CARRY], undefined, { role: creepType });
+                
+                if (result == ERR_NOT_ENOUGH_ENERGY) {
+                    console.log('Tried to spawn creep, not enough energy');
+                }
+                
+                else if (Game.creeps[result]) {
+                    console.log('Created new ' + creepType + ' (' + result + ') :: ' + (parseInt(creeps.length) + 1) + '/' + constants.maxCreeps[creepType]);
+                }
             }
         }
         

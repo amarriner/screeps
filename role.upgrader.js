@@ -47,7 +47,7 @@ var roleUpgrader = {
         // Else, this creep needs to harvest more energy
         //
         else {
-            utils.harvest(creep);            
+            utils.harvest(creep, creep.room.controller);            
         }
         
         

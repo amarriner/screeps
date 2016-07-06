@@ -2,7 +2,7 @@
 module.exports = {
     
     maxCreeps: {
-        builder: 4,
+        builder: 5,
         harvester: 3,
         upgrader: 4
     }

@@ -66,7 +66,7 @@ var roleBuilder = {
         //
         else {
         
-            utils.harvest(creep);
+            utils.harvest(creep, creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES));
             
         }
     }
