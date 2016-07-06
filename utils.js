@@ -118,7 +118,7 @@ var utils = {
             if (creeps.length < constants.maxCreeps[creepType]) {
 
                 console.log('Creating new ' + creepType + ' :: ' + (parseInt(creeps.length) + 1) + '/' + constants.maxCreeps[creepType]);                
-                var result = Game.spawns.Spawn1.createCreep([WORK, MOVE, CARRY], undefined, { role: creepType });
+                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, undefined, { role: creepType });
                 
                 if (result == ERR_NOT_ENOUGH_ENERGY) {
                     console.log('Tried to spawn creep, not enough energy');
