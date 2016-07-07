@@ -20,83 +20,39 @@ var utils = {
     /** param {Position} destination **/
     harvest: function(creep, destination) {
         
-        var source;
-        var sources = [];
-        
-        //
-        // If a destination was passed, find the source closest to it
-        //
-        if (destination) {
-            source = destination.pos.findClosestByPath(FIND_SOURCES);
-            
-            if (source) {
-                sources.push(source);
-            }
-        }
-        
         //
         // Find all energy sources in this room
         //
-        if (! source) {
-            var d = this.distance;
-            sources = creep.room.find(FIND_SOURCES).sort(
-                function(a, b) {
-                    return d(creep.pos, a.pos) -
-                           d(creep.pos, b.pos);
-                }    
-            );
-        }
-        
+        var source = creep.pos.findClosestByPath(FIND_SOURCES);
+
         //
-        // Attempt to harvest the closest source that is not already being 
-        // harvested by 3 other creeps
+        // Attempt harvesting this source
         //
-        for (var i = 0; i < sources.length; i++) {
-            
-            //
-            // Count the number of creeps already harvesting this source
-            //
-            var cs = _.filter(Game.creeps, (creep) => 
-                    creep.memory.harvesting == sources[i].id);
-            var harvestingCount = cs.length;
-            
-            //
-            // If there are less than three or we're already harvesting this
-            // one, pick it
-            //
-            if (harvestingCount < 3 || creep.memory.harvesting == sources[i].id) {
-            
-                //
-                // Attempt harvesting this source
-                //
-                var harvestingResult = creep.harvest(sources[i]);
+        var harvestingResult = creep.harvest(source);
                 
-                //
-                // The harvesting was successful so mark this creep
-                // as harvesting this source so we can limit the number at a given 
-                // source
-                //
-                if (harvestingResult == 0) {
-                    creep.memory.harvesting = sources[i].id;
-                }
-                
-                else if (harvestingResult == ERR_NOT_IN_RANGE) {
-                
-                    //
-                    // Couldn't harvest, too far away. Move to the source
-                    //
-                    creep.moveTo(sources[i]);
-            
-                    //
-                    // Reset this creep's harvesting memory 
-                    //
-                    creep.memory.harvesting = undefined;
-                
-                }
-            
-                i = sources.length;
-            }
+        //
+        // The harvesting was successful so mark this creep
+        // as harvesting this source so we can limit the number at a given 
+        // source
+        //
+        if (harvestingResult == 0) {
+            creep.memory.harvesting = source.id;
         }
+                
+        else if (harvestingResult == ERR_NOT_IN_RANGE) {
+            
+            //
+            // Couldn't harvest, too far away. Move to the source
+            //
+            creep.moveTo(source);
+            
+            //
+            // Reset this creep's harvesting memory 
+            //
+            creep.memory.harvesting = undefined;
+                
+        }
+            
     },
     
     //
