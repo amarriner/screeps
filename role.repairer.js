@@ -26,16 +26,13 @@ var roleRepairer = {
         //
         if (closestDamagedStructure) {
             
-            console.log('Repairer ' + creep.name + ' moving to ' + closestDamagedStructure.id + ' (' + closestDamagedStructure.structureType + ')');
+            // console.log('Repairer ' + creep.name + ' moving to ' + closestDamagedStructure.id + ' (' + closestDamagedStructure.structureType + ')');
           
             //
             // Attempt repair
             //
-            var result = creep.repair(closestDamagedStructure);
-            console.log(result);
-            if (result)  {
-                console.log('could not repair');
-              
+            if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
+
                 //
                 // Too far away, move to it
                 //
@@ -49,7 +46,6 @@ var roleRepairer = {
         // If there's nothing to repair, build
         //
         else {
-            console.log('Nothing to repair for ' + creep.name + ', build instead');
             roleBuilder.run(creep);
         }
         

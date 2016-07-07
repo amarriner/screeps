@@ -8,6 +8,16 @@ var roleUpgrader = require('role.upgrader');
 
 module.exports.loop = function() {
     
+    if (Game.time % 100 == 0) { 
+        console.log('------------------------------------------------------------');
+        for (var creepType in constants.maxCreeps) {
+    
+            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == creepType);
+            console.log(creepType + ': ' + creeps.length);
+        }
+        console.log('------------------------------------------------------------');
+    }
+    
     //
     // Loop through creeps, looking for deleted ones
     //

@@ -73,11 +73,10 @@ var utils = {
             var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == creepType);
             if (creeps.length < constants.maxCreeps[creepType]) {
 
-                console.log('Creating new ' + creepType + ' :: ' + (parseInt(creeps.length) + 1) + '/' + constants.maxCreeps[creepType]);                
-                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, undefined, { role: creepType });
+                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, creepType + '_' + creeps.length, { role: creepType });
                 
                 if (result == ERR_NOT_ENOUGH_ENERGY) {
-                    console.log('Tried to spawn creep, not enough energy');
+                    // console.log('Tried to spawn creep, not enough energy');
                 }
 
             }
