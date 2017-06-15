@@ -1,14 +1,11 @@
+var roleUpgrader = require('role.upgrader');
 var utils = require('utils');
 
 var roleHarvester = {
     
     /** @param {Creep} creep **/
     run: function(creep) {
-        
-        //if (Game.spawns['Spawn1'].energyCapacity >= Game.spawns['Spawn1'].energyCapacity) {
-        //    creep.suicide();
-        //}
-        
+
         //
         // If this creep is carrying less their max energy capacity, 
         // find a source in the same room and either harvest it or 

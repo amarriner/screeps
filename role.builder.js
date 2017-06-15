@@ -1,3 +1,4 @@
+var roleUpgrader = require('role.upgrader');
 var utils = require('utils');
 
 var roleBuilder = {
@@ -62,7 +63,7 @@ var roleBuilder = {
                         //
                         creep.moveTo(targets[0], {
                             visualizePathStyle: { 
-                                stroke: '#fff', 
+                                stroke: '#f0f', 
                                 lineStyle: 'solid',
                                 opacity: .75
                             }
@@ -79,22 +80,20 @@ var roleBuilder = {
                 }
                 
                 //
-                // Else no targets available to build, suicide
+                // Else no targets available to build, upgrade
                 //
                 else {
-                    creep.suicide();
+                    roleUpgrader.run(creep);
                 }
             }
 
         }
         
         //
-        // Not building, harvest
+        // Not building, upgrade
         //
         else {
-        
-            utils.harvest(creep, creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES));
-            
+            roleUpgrader.run(creep);
         }
     }
 };

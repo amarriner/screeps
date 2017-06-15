@@ -108,7 +108,13 @@ var utils = {
             //
             // Couldn't harvest, too far away. Move to the source
             //
-            creep.moveTo(source, {visualizePathStyle: { stroke: '#88f', lineStyle: 'dashed' }});
+            creep.moveTo(source, {
+                visualizePathStyle: {
+                    stroke: '#ff0', 
+                    lineStyle: 'dashed',
+                    opacity: .75,
+                }
+            });
             
             //
             // Reset this creep's harvesting memory 
