@@ -5,6 +5,10 @@ var roleHarvester = {
     /** @param {Creep} creep **/
     run: function(creep) {
         
+        if (Game.spawns['Spawn1'].energyCapacity >= Game.spawns['Spawn1'].energyCapacity) {
+            creep.suicide();
+        }
+        
         //
         // If this creep is carrying less their max energy capacity, 
         // find a source in the same room and either harvest it or 
@@ -34,11 +38,8 @@ var roleHarvester = {
             //
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                            structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_TOWER ||
-                            structure.structureType == STRUCTURE_CONTROLLER) &&
-                            structure.energy < structure.energyCapacity;
+                    return structure.structureType == STRUCTURE_SPAWN &&
+                           structure.energy < structure.energyCapacity;
                 }
             });
             
@@ -55,7 +56,7 @@ var roleHarvester = {
                     //
                     // Couldn't transfer, too far away. Move towards the target
                     //
-                    creep.moveTo(targets[0]);
+                    creep.moveTo(targets[0], {visualizePathStyle: { stroke: '#fff', lineStyle: 'dashed' }});
                     
                 }
             }

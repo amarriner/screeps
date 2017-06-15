@@ -8,12 +8,15 @@ var roleUpgrader = require('role.upgrader');
 
 module.exports.loop = function() {
     
+    //
+    // Basic debug information every 100 ticks
+    //
     if (Game.time % 100 == 0) { 
         console.log('------------------------------------------------------------');
-        for (var creepType in constants.maxCreeps) {
+        for (var i = 0; i < constants.maxCreeps.length; i++) {
     
-            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == creepType);
-            console.log(creepType + ': ' + creeps.length);
+            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
+            console.log(constants.maxCreeps[i].creepType + " \t: " + creeps.length);
         }
         console.log('------------------------------------------------------------');
     }

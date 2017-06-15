@@ -1,6 +1,70 @@
 var constants = require('constants');
 
 var utils = {
+
+    //
+    // Sorts construction sites per the priorty array in constants.js
+    //
+    /** param {ConstructionSite[]} sites **/
+    sortConstructionSites: function(sites) {
+        
+        //
+        // Return if no sites were passed in
+        //
+        if (!sites) {
+            return [];
+        }
+        
+        //
+        // Instantiate and initiate sorted arrays
+        //
+        var sortedSites = [];
+        for (var i = 0; i <= constants.buildSort.length; i++) {
+            sortedSites[i] = [];
+        }
+
+        //
+        // Loop through construction sites passed in
+        //
+        for (var i = 0; i < sites.length; i++) {
+            
+            var site = sites[i];
+            
+            //
+            // Find the priority of the current site
+            //
+            var index = constants.buildSort.indexOf(site.structureType);
+            
+            //
+            // If it doesn't exist in the priorty list, it goes
+            // at the end
+            //
+            if (index === -1) {
+                index = constants.buildSort.length;
+            }
+            
+            //
+            // Add the site to the array at the priority index
+            //
+            sortedSites[index].push(site);
+            
+        }
+        
+        //
+        // Shift off arrays in priority order to return
+        // the highest priorty construction sites
+        //
+        while (sortedSites.length) {
+            var structureTypeArr = sortedSites.shift();
+            
+            if (structureTypeArr.length) {
+                return structureTypeArr;
+            }
+        }
+        
+        return [];
+        
+    },
     
     //
     // Finds the distance between two points
@@ -44,7 +108,7 @@ var utils = {
             //
             // Couldn't harvest, too far away. Move to the source
             //
-            creep.moveTo(source);
+            creep.moveTo(source, {visualizePathStyle: { stroke: '#88f', lineStyle: 'dashed' }});
             
             //
             // Reset this creep's harvesting memory 
@@ -60,28 +124,43 @@ var utils = {
     //
     spawnCreeps: function() {
         
-        for (var creepType in constants.maxCreeps) {
+        //
+        // Loop through array from constants.js which should be in priority order
+        // to find the next type of creep to spawn
+        //
+        for (var i = 0; i < constants.maxCreeps.length; i++) {
             
-            // 
-            // If the creep type is a builder, but there are no construction sites, do not
-            // spawn a new builder
             //
-            //if (creepType == 'builder' && !creep.room.find(FIND_CONSTRUCTION_SITES).length) {
-            //    return;
-            //}
-            
-            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == creepType);
-            if (creeps.length < constants.maxCreeps[creepType]) {
+            // Get all creeps of the current type to see if we're at the limit or not
+            //
+            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
+            if (creeps.length < constants.maxCreeps[i].max) {
 
-                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, creepType + '_' + creeps.length, { role: creepType });
+                //
+                // TODO: Need to fix name generation issues
+                //
+                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, 
+                    constants.maxCreeps[i].creepType + '_' + creeps.length, { role: constants.maxCreeps[i].creepType });
                 
-                if (result == ERR_NOT_ENOUGH_ENERGY) {
-                    // console.log('Tried to spawn creep, not enough energy');
+                //
+                // Handle spawn results if necessary
+                //
+                switch (result) {
+                    case OK:
+                        console.log('Spawned creep ' + constants.maxCreeps[i].creepType + '_' + creeps.length);
+                        break;
+                    case ERR_NOT_ENOUGH_ENERGY:
+                        // console.log('Tried to spawn creep, not enough energy');
+                        break;
                 }
+                
+                //
+                // Return after first attempt at spawning
+                //
+                return;
 
             }
         }
-        
     }
     
 };

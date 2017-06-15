@@ -11,6 +11,7 @@ var roleBuilder = {
         //
         if (creep.memory.building && creep.carry.energy == 0) {
             creep.memory.building = false;
+            creep.memory.constructionSite = undefined;
         }
         
         //
@@ -32,33 +33,55 @@ var roleBuilder = {
             creep.memory.harvesting = undefined;
             
             //
-            // Find any construction sites in this room
+            // If we're already at a construction site and currently building,
+            // don't bother looking for other sites
             //
-            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if (creep.memory.constructionSite) {
+                creep.build(Game.constructionSites[creep.memory.constructionSite]);
+            }
             
-            //
-            // If there are any construction sites
-            //
-            if(targets.length) {
+            else {
                 
                 //
-                // Attempt to build 
+                // Find any construction sites in this room, sorted by priorty
                 //
-                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                var targets = utils.sortConstructionSites(creep.room.find(FIND_CONSTRUCTION_SITES));
+
+                if(targets.length) {    
+                    //
+                    // Attempt to build 
+                    //
+                    if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
                     
+                        //
+                        // Couldn't build, too far away. Move to the site
+                        //
+                        creep.moveTo(targets[0], {
+                            visualizePathStyle: { 
+                                stroke: '#fff', 
+                                lineStyle: 'solid',
+                                opacity: .75
+                            }
+                        });
+                    
+                    }
+                
                     //
-                    // Couldn't build, too far away. Move to the site
+                    // If successful, store the site we've built on
                     //
-                    creep.moveTo(targets[0]);
+                    else {
+                        creep.memory.constructionSite = targets[0].id;
+                    }
+                }
+                
+                //
+                // Else no targets available to build, suicide
+                //
+                else {
+                    creep.suicide();
                 }
             }
-            
-            //
-            // Else no targets available to build, suicide
-            //
-            else {
-                creep.suicide();
-            }
+
         }
         
         //
