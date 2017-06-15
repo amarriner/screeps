@@ -1,12 +1,17 @@
 var constants = require('constants');
 
 var utils = {
+    
+    flags: function() {
+        for(var flag in Game.flags) {
+            console.log(flag.toString() + ' ' + flag.id);
+        }
+    },
 
     //
-    // Sorts construction sites per the priorty array in constants.js
+    // Sorts sites per the priorty array in constants.js
     //
-    /** param {ConstructionSite[]} sites **/
-    sortConstructionSites: function(sites) {
+    sortSites: function(structureType, sites) {
         
         //
         // Return if no sites were passed in
@@ -16,10 +21,17 @@ var utils = {
         }
         
         //
+        // Return if invalid structureType was passed
+        //
+        if (!constants.sortArrays[structureType]) {
+            return [];
+        }
+        
+        //
         // Instantiate and initiate sorted arrays
         //
         var sortedSites = [];
-        for (var i = 0; i <= constants.buildSort.length; i++) {
+        for (var i = 0; i <= constants.sortArrays[structureType].length; i++) {
             sortedSites[i] = [];
         }
 
@@ -33,14 +45,14 @@ var utils = {
             //
             // Find the priority of the current site
             //
-            var index = constants.buildSort.indexOf(site.structureType);
+            var index = constants.sortArrays[structureType].indexOf(site.structureType);
             
             //
             // If it doesn't exist in the priorty list, it goes
             // at the end
             //
             if (index === -1) {
-                index = constants.buildSort.length;
+                index = constants.sortArrays[structureType].length;
             }
             
             //
@@ -109,11 +121,11 @@ var utils = {
             // Couldn't harvest, too far away. Move to the source
             //
             creep.moveTo(source, {
-                visualizePathStyle: {
-                    stroke: '#ff0', 
-                    lineStyle: 'dashed',
-                    opacity: .75,
-                }
+                //visualizePathStyle: {
+                //    stroke: '#ff0', 
+                //    lineStyle: 'dashed',
+                //    opacity: .75,
+                //}
             });
             
             //

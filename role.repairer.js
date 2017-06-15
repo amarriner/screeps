@@ -9,7 +9,7 @@ var roleRepairer = {
         //
         // If we're out of energy, go get some
         //
-        if (creep.carry.energy < creep.carryCapacity) {
+        if (creep.carry.energy == 0) {
             utils.harvest(creep);
             return;
         }
@@ -17,14 +17,16 @@ var roleRepairer = {
         //
         // Find the closest damaged structure (if any)
         //
-        var closestDamagedStructure = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax
-        });
+        var sites = utils.sortSites('repair', creep.room.find(FIND_STRUCTURES, {
+            filter: (structure) => structure.hits < (structure.hitsMax / 3)
+        }));
         
         //
         // If we found one, repair it
         //
-        if (closestDamagedStructure) {
+        if (sites.length) {
+            
+            var closestDamagedStructure = sites[0];
             
             // console.log('Repairer ' + creep.name + ' moving to ' + closestDamagedStructure.id + ' (' + closestDamagedStructure.structureType + ')');
           

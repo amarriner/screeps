@@ -1,4 +1,4 @@
-var roleUpgrader = require('role.upgrader');
+var roleRepairer = require('role.repairer');
 var utils = require('utils');
 
 var roleBuilder = {
@@ -50,7 +50,7 @@ var roleBuilder = {
                 //
                 // Find any construction sites in this room, sorted by priorty
                 //
-                var targets = utils.sortConstructionSites(creep.room.find(FIND_CONSTRUCTION_SITES));
+                var targets = utils.sortSites('build', creep.room.find(FIND_CONSTRUCTION_SITES));
 
                 if(targets.length) {    
                     //
@@ -80,20 +80,20 @@ var roleBuilder = {
                 }
                 
                 //
-                // Else no targets available to build, upgrade
+                // Else no targets available to build, repair
                 //
                 else {
-                    roleUpgrader.run(creep);
+                    roleRepairer.run(creep);
                 }
             }
 
         }
         
         //
-        // Not building, upgrade
+        // Not building, harvest
         //
         else {
-            roleUpgrader.run(creep);
+            utils.harvest(creep);
         }
     }
 };

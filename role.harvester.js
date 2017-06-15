@@ -7,11 +7,10 @@ var roleHarvester = {
     run: function(creep) {
 
         //
-        // If this creep is carrying less their max energy capacity, 
-        // find a source in the same room and either harvest it or 
-        // move towards the closest one
+        // If this creep is carrying no energy, find a source in the same room 
+        // and either harvest it or move towards the closest one
         //
-        if (creep.carry.energy < creep.carryCapacity) {
+        if (creep.carry.energy == 0) {
           
             utils.harvest(creep);
             
@@ -36,7 +35,8 @@ var roleHarvester = {
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_EXTENSION) &&
+                            structure.structureType == STRUCTURE_EXTENSION ||
+                            structure.structureType == STRUCTURE_CONTAINER) &&
                             structure.energy < structure.energyCapacity;
                 }
             });
@@ -73,17 +73,19 @@ var roleHarvester = {
             //
             else {
                 
-                var location = Game.flags['Muster'];
-                if (!location) {
-                    location = Game.spawns['Spawn1'];
-                }
+                //var location = Game.flags['Muster'];
+                //if (!location) {
+                //    location = Game.spawns['Spawn1'];
+                //}
                 
                 //
                 // Only move if this creep is more than 3 units of distance away
                 //
-                if (utils.distance(creep.pos, location.pos) > 3) {
-                    creep.moveTo(location);
-                }
+                //if (utils.distance(creep.pos, location.pos) > 3) {
+                //    creep.moveTo(location);
+                //}
+                
+                roleUpgrader.run(creep);
             }
         }
         

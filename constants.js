@@ -5,13 +5,22 @@ module.exports = {
         {creepType: 'harvester', max: 5},
         {creepType: 'builder', max: 5},
         {creepType: 'upgrader', max: 5},
-        {creepType: 'repairer', max: 2},
+        {creepType: 'repairer', max: 5},
     ],
     
-    buildSort: [
-        STRUCTURE_EXTENSION,
-    ],
+    sortArrays: {
+        build: [
+            STRUCTURE_EXTENSION,
+            STRUCTURE_CONTAINER,
+        ],
+        repair: [
+            STRUCTURE_SPAWN,
+            STRUCTURE_RAMPART,
+            STRUCTURE_CONTAINER,
+            STRUCTURE_ROAD,
+        ],
+    },
     
-    defaultCreepParts: [WORK, CARRY, MOVE, MOVE]
+    defaultCreepParts: [WORK, WORK, CARRY, CARRY, MOVE, MOVE]
     
 };
