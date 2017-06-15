@@ -7,9 +7,13 @@ var roleBuilder = {
         
         //
         // If the creep is currently building, but has is not carrying
-        // any energy, set the building memory flag to false
+        // any energy
+        // OR
+        // if the constructionSite in memory no longer exists:
+        // set the building memory flag to false
         //
-        if (creep.memory.building && creep.carry.energy == 0) {
+        if ((creep.memory.building && creep.carry.energy == 0) ||
+            !Game.getObjectById(creep.memory.constructionSite)) {
             creep.memory.building = false;
             creep.memory.constructionSite = undefined;
         }

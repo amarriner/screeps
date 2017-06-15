@@ -2,14 +2,14 @@
 module.exports = {
     
     maxCreeps: [
+        {creepType: 'harvester', max: 5},
         {creepType: 'builder', max: 5},
-        {creepType: 'harvester', max: 2},
-        {creepType: 'repairer', max: 2},
-        {creepType: 'upgrader', max: 5}
+        {creepType: 'upgrader', max: 5},
+        {creepType: 'repairer', max: 5},
     ],
     
     buildSort: [
-        STRUCTURE_EXTENSION
+        STRUCTURE_EXTENSION,
     ],
     
     defaultCreepParts: [WORK, CARRY, MOVE, MOVE]

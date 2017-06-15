@@ -5,9 +5,9 @@ var roleHarvester = {
     /** @param {Creep} creep **/
     run: function(creep) {
         
-        if (Game.spawns['Spawn1'].energyCapacity >= Game.spawns['Spawn1'].energyCapacity) {
-            creep.suicide();
-        }
+        //if (Game.spawns['Spawn1'].energyCapacity >= Game.spawns['Spawn1'].energyCapacity) {
+        //    creep.suicide();
+        //}
         
         //
         // If this creep is carrying less their max energy capacity, 
@@ -38,8 +38,9 @@ var roleHarvester = {
             //
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return structure.structureType == STRUCTURE_SPAWN &&
-                           structure.energy < structure.energyCapacity;
+                    return (structure.structureType == STRUCTURE_SPAWN ||
+                            structure.structureType == STRUCTURE_EXTENSION) &&
+                            structure.energy < structure.energyCapacity;
                 }
             });
             
@@ -47,6 +48,8 @@ var roleHarvester = {
             // If targets were found
             //
             if (targets.length) {
+                
+                // creep.say(targets[0].structureType);
                 
                 //
                 // Attempt to transfer energy from the creep to the target
@@ -56,22 +59,33 @@ var roleHarvester = {
                     //
                     // Couldn't transfer, too far away. Move towards the target
                     //
-                    creep.moveTo(targets[0], {visualizePathStyle: { stroke: '#fff', lineStyle: 'dashed' }});
+                    creep.moveTo(targets[0], {
+                        visualizePathStyle: {
+                            stroke: '#0ff',
+                            lineStyle: 'dashed',
+                            opacity: .70,
+                        }
+                    });
                     
                 }
             }
             
             //
-            // No targets found, go back to spawn so the energy node doesn't 
-            // get jammed up
+            // No targets found, go back to either the Muster flag or the
+            // spawn so the energy node doesn't get jammed up
             //
             else {
+                
+                var location = Game.flags['Muster'];
+                if (!location) {
+                    location = Game.spawns['Spawn1'];
+                }
                 
                 //
                 // Only move if this creep is more than 3 units of distance away
                 //
-                if (utils.distance(creep.pos, Game.spawns.Spawn1.pos) > 3) {
-                    creep.moveTo(Game.spawns.Spawn1);
+                if (utils.distance(creep.pos, location.pos) > 3) {
+                    creep.moveTo(location);
                 }
             }
         }

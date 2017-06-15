@@ -139,19 +139,34 @@ var utils = {
                 //
                 // TODO: Need to fix name generation issues
                 //
+                var date = new Date();
+                var name = constants.maxCreeps[i].creepType + '_' + parseInt(date.getSeconds()) + parseInt(date.getMilliseconds());
                 var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, 
-                    constants.maxCreeps[i].creepType + '_' + creeps.length, { role: constants.maxCreeps[i].creepType });
+                     name, { role: constants.maxCreeps[i].creepType });
                 
                 //
                 // Handle spawn results if necessary
                 //
                 switch (result) {
+                    //
+                    // 0
+                    //
                     case OK:
-                        console.log('Spawned creep ' + constants.maxCreeps[i].creepType + '_' + creeps.length);
+                        console.log('Spawned creep ' + name);
                         break;
+                    //
+                    // -3
+                    //
                     case ERR_NOT_ENOUGH_ENERGY:
                         // console.log('Tried to spawn creep, not enough energy');
                         break;
+                    //
+                    // -4
+                    //
+                    case ERR_BUSY:
+                        break;
+                    default:
+                        console.log('Trying to spawn: ' + name + ': ' + result);       
                 }
                 
                 //
