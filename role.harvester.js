@@ -10,17 +10,14 @@ var roleHarvester = {
         // If this creep is carrying no energy, find a source in the same room 
         // and either harvest it or move towards the closest one
         //
-        if (creep.carry.energy == 0) {
-          
+        if (!creep.memory.deliver && creep.carry.energy < creep.carryCapacity) {
             utils.harvest(creep);
-            
+        }
+        else {
+            creep.memory.deliver = true;
         }
         
-        //
-        // Else this creep is at its carrying capacity, so drop
-        // the energy off somewhere
-        //
-        else {
+        if (creep.memory.deliver) {
             
             //
             // Reset creep's harvesting memory
@@ -34,10 +31,14 @@ var roleHarvester = {
             //
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_EXTENSION ||
-                            structure.structureType == STRUCTURE_CONTAINER) &&
-                            structure.energy < structure.energyCapacity;
+                    return (
+                            ((structure.structureType == STRUCTURE_SPAWN ||
+                            structure.structureType == STRUCTURE_EXTENSION) &&
+                            structure.energy < structure.energyCapacity)
+                            ||
+                            (structure.structureType == STRUCTURE_CONTAINER &&
+                            structure.store.energy < structure.storeCapacity / 2)
+                            );
                 }
             });
             
@@ -64,6 +65,10 @@ var roleHarvester = {
                         }
                     });
                     
+                }
+                
+                if (creep.carry.energy == 0) {
+                        creep.memory.deliver = false;
                 }
             }
             

@@ -21,6 +21,6 @@ module.exports = {
         ],
     },
     
-    defaultCreepParts: [WORK, WORK, CARRY, CARRY, MOVE, MOVE]
+    defaultCreepParts: [WORK, CARRY, MOVE]
     
 };
