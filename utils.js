@@ -2,16 +2,10 @@ var constants = require('constants');
 
 var utils = {
     
-    flags: function() {
-        for(var flag in Game.flags) {
-            console.log(flag.toString() + ' ' + flag.id);
-        }
-    },
-
-    //
+    // -------------------------------------------------------------------------
     // Sorts sites per the priorty array in constants.js
-    //
-    sortSites: function(structureType, sites) {
+    // -------------------------------------------------------------------------
+    sortSites: function(siteType, sites) {
         
         //
         // Return if no sites were passed in
@@ -21,9 +15,9 @@ var utils = {
         }
         
         //
-        // Return if invalid structureType was passed
+        // Return if invalid siteType was passed
         //
-        if (!constants.sortArrays[structureType]) {
+        if (!constants.sortArrays[siteType]) {
             return [];
         }
         
@@ -31,12 +25,12 @@ var utils = {
         // Instantiate and initiate sorted arrays
         //
         var sortedSites = [];
-        for (var i = 0; i <= constants.sortArrays[structureType].length; i++) {
+        for (var i = 0; i <= constants.sortArrays[siteType].length; i++) {
             sortedSites[i] = [];
         }
 
         //
-        // Loop through construction sites passed in
+        // Loop through sites passed in
         //
         for (var i = 0; i < sites.length; i++) {
             
@@ -45,14 +39,14 @@ var utils = {
             //
             // Find the priority of the current site
             //
-            var index = constants.sortArrays[structureType].indexOf(site.structureType);
+            var index = constants.sortArrays[siteType].indexOf(site.structureType);
             
             //
             // If it doesn't exist in the priorty list, it goes
             // at the end
             //
             if (index === -1) {
-                index = constants.sortArrays[structureType].length;
+                index = constants.sortArrays[siteType].length;
             }
             
             //
@@ -63,24 +57,24 @@ var utils = {
         }
         
         //
-        // Shift off arrays in priority order to return
-        // the highest priorty construction sites
+        // Concatenate all the arrays together into a single sorted array
         //
+        var returnArray = [];
         while (sortedSites.length) {
-            var structureTypeArr = sortedSites.shift();
+            var siteTypeArr = sortedSites.shift();
             
-            if (structureTypeArr.length) {
-                return structureTypeArr;
+            if (siteTypeArr.length) {
+                returnArray = returnArray.concat(siteTypeArr);
             }
         }
         
-        return [];
+        return returnArray;
         
     },
     
-    //
+    // -------------------------------------------------------------------------
     // Finds the distance between two points
-    //
+    // -------------------------------------------------------------------------
     /** param {RoomPosition} from **/
     /** param {RoomPosition} to **/
     distance: function(from, to) {
@@ -89,22 +83,41 @@ var utils = {
         
     },
     
-    //
+    // -------------------------------------------------------------------------
     // Harvest from the nearest energy source
-    //
+    // -------------------------------------------------------------------------
     /** param {Creep} creep **/
-    /** param {Position} destination **/
-    harvest: function(creep, destination) {
+    harvest: function(creep) {
+        
+        if (!creep) {
+            return;
+        }
         
         //
         // Find all energy sources in this room
         //
-        var source = creep.pos.findClosestByPath(FIND_SOURCES);
-
+        var source = creep.pos.findClosestByPath(
+            creep.room.find(FIND_SOURCES).concat(creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                        creep.memory.role !== 'harvester' && 
+                        structure.structureType === (STRUCTURE_CONTAINER) &&
+                        structure.store.energy > creep.carry.energy
+                    );
+                }
+            })
+        ));
+        
         //
         // Attempt harvesting this source
         //
-        var harvestingResult = creep.harvest(source);
+        var harvestingResult;
+        if (source && source.structureType && source.structureType === STRUCTURE_CONTAINER) {
+            harvestingResult = creep.withdraw(source, RESOURCE_ENERGY);
+        }
+        else {
+            harvestingResult = creep.harvest(source);
+        }
                 
         //
         // The harvesting was successful so mark this creep
@@ -137,9 +150,9 @@ var utils = {
             
     },
     
-    //
+    // -------------------------------------------------------------------------
     // Function to spawn creeps up to their max (defined in constants)
-    //
+    // -------------------------------------------------------------------------
     spawnCreeps: function() {
         
         //

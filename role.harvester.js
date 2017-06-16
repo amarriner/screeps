@@ -29,35 +29,45 @@ var roleHarvester = {
             // types listed in the filter where those structures have less
             // energy than their capacity
             //
-            var targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (
-                            ((structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_EXTENSION) &&
-                            structure.energy < structure.energyCapacity)
-                            ||
-                            (structure.structureType == STRUCTURE_CONTAINER &&
-                            structure.store.energy < structure.storeCapacity / 2)
-                            );
-                }
-            });
+            var targets = utils.sortSites('fill', creep.room.find(FIND_STRUCTURES));
             
             //
-            // If targets were found
+            // Loop through the targets to find the next one that needs energy
             //
-            if (targets.length) {
+            var ndx;
+            for (var i = 0; i < targets.length; i++) {
                 
-                // creep.say(targets[0].structureType);
+                switch (targets[i].structureType) {
+                    case STRUCTURE_SPAWN:
+                    case STRUCTURE_EXTENSION:
+                        if (targets[i].energy < targets[i].energyCapacity) {
+                            ndx = i;
+                            i = targets.length;
+                        }
+                        break;
+                    case STRUCTURE_CONTAINER:
+                        if (targets[i].store.energy < targets[i].storeCapacity) {
+                            ndx = i;
+                            i = targets.length;
+                        }
+                        break;
+                }
+            }
+            
+            //
+            // If we found a structure to fill
+            //
+            if (ndx !== undefined) {   
                 
                 //
                 // Attempt to transfer energy from the creep to the target
                 //
-                if (creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                if (creep.transfer(targets[ndx], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     
                     //
                     // Couldn't transfer, too far away. Move towards the target
                     //
-                    creep.moveTo(targets[0], {
+                    creep.moveTo(targets[ndx], {
                         visualizePathStyle: {
                             stroke: '#0ff',
                             lineStyle: 'dashed',
@@ -73,24 +83,12 @@ var roleHarvester = {
             }
             
             //
-            // No targets found, go back to either the Muster flag or the
-            // spawn so the energy node doesn't get jammed up
+            // No targets found, upgrade
             //
             else {
                 
-                //var location = Game.flags['Muster'];
-                //if (!location) {
-                //    location = Game.spawns['Spawn1'];
-                //}
-                
-                //
-                // Only move if this creep is more than 3 units of distance away
-                //
-                //if (utils.distance(creep.pos, location.pos) > 3) {
-                //    creep.moveTo(location);
-                //}
-                
                 roleUpgrader.run(creep);
+                
             }
         }
         
