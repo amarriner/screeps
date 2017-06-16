@@ -36,9 +36,9 @@ module.exports = {
         repair: [
             STRUCTURE_SPAWN,
             STRUCTURE_ROAD,
-            STRUCTURE_RAMPART,
-            STRUCTURE_TOWER,
             STRUCTURE_CONTAINER,
+            STRUCTURE_TOWER,
+            STRUCTURE_RAMPART,
         ],
         fill: [
             STRUCTURE_SPAWN,

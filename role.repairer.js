@@ -19,6 +19,17 @@ var roleRepairer = {
         
         if (creep.memory.deliver) {
             
+            //
+            // Sometimes they get stuck if they're trying to get to a destination 
+            // that has already been fully repaired. Clear the destination
+            // if that's the case
+            //
+            if (creep.memory.destination) {
+                if (Game.getObjectById(creep.memory.destination).hits === Game.getObjectById(creep.memory.destination).hitsMax) {
+                    creep.memory.destination = undefined;
+                }
+            }
+            
             if (!creep.memory.destination) {
                 
                 //
@@ -39,7 +50,7 @@ var roleRepairer = {
             if (creep.memory.destination) {
                 
                 var closestDamagedStructure = Game.getObjectById(creep.memory.destination);
-              
+               
                 //
                 // Attempt repair
                 //
