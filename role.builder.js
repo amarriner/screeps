@@ -14,7 +14,7 @@ var roleBuilder = {
         // set the building memory flag to false
         //
         if ((creep.memory.building && creep.carry.energy == 0) ||
-            !Game.getObjectById(creep.memory.constructionSite)) {
+            !Game.getObjectById(creep.memory.destination)) {
             creep.memory.building = false;
             creep.memory.destination = undefined;
         }
@@ -55,6 +55,14 @@ var roleBuilder = {
                 //
                 // Attempt to build 
                 //
+                var target = Game.getObjectById(creep.memory.destination);
+                
+                if (!target) {
+                    creep.memory.destination = undefined;
+                    console.log('**** ' + creep.name + ' building at invalid Object ID ' + creep.memory.destination);
+                    return;
+                }
+                
                 var result = creep.build(target);
                 switch(result) {
                     
@@ -66,6 +74,10 @@ var roleBuilder = {
                                 opacity: .75
                             }
                         });
+                        break;
+                        
+                    case ERR_INVALID_TARGET:
+                        console.log('**** ' + creep.name + ' building at ' + Game.getObjectById(creep.memory.destination) + ' invalid target');
                         break;
                         
                     case OK:

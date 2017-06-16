@@ -15,6 +15,7 @@ module.exports.loop = function() {
     //
     if (Game.time % 100 == 0) { 
         
+        console.log('==== CREEP TOTALS');
         for (var i = 0; i < constants.maxCreeps.length; i++) {
     
             var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
@@ -38,6 +39,28 @@ module.exports.loop = function() {
     // Loop through my rooms
     //
     for (var roomName in Game.rooms) {
+        
+        //
+        // Check and store room level
+        //
+        if (!Memory.rooms)                      { Memory.rooms = {}; }
+        if (!Memory.rooms[roomName])            { Memory.rooms[roomName] = {}; }
+        if (!Memory.rooms[roomName].controller) { Memory.rooms[roomName].controller = {}; }
+        
+        if (Memory.rooms[roomName].controller.level != Game.rooms[roomName].controller.level) {
+            
+            var message = 'Room ' + roomName + ' has changed level from ' +
+                            Memory.rooms[roomName].controller.level + ' to ' +
+                            Game.rooms[roomName].controller.level;
+                            
+            Game.notify(message);
+                        
+            console.log('==== ' + message);
+            
+        }
+        
+        Memory.rooms[roomName].controller.level = Game.rooms[roomName].controller.level;
+        
         //
         // If there are less creeps than the max, spawn them
         //

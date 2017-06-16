@@ -17,7 +17,7 @@ module.exports = {
     //
     // Used by utils.spawnCreeps() to give creeps a default body
     //
-    defaultCreepParts: [WORK, WORK, CARRY, MOVE, MOVE],
+    defaultCreepParts: [WORK, CARRY, MOVE],
     defaultCreepRoleParts: {
         defender: [MOVE, MOVE, ATTACK, ATTACK, TOUGH, TOUGH],
     },
