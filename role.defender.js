@@ -20,7 +20,8 @@ var roleDefender = {
                 case OK:
                     break;
                 default:
-                    console.log()
+                    // console.log();
+                    break;
             }
             
         }

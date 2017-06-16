@@ -11,6 +11,7 @@ var roleHarvester = {
         // and either harvest it or move towards the closest one
         //
         if (!creep.memory.deliver && creep.carry.energy < creep.carryCapacity) {
+            creep.memory.destination = undefined;
             utils.harvest(creep);
         }
         else {
@@ -29,57 +30,75 @@ var roleHarvester = {
             // types listed in the filter where those structures have less
             // energy than their capacity
             //
-            var targets = utils.sortSites('fill', creep.room.find(FIND_STRUCTURES));
+            if (!creep.memory.destination) {
+                var targets = utils.sortSites('fill', creep.room.find(FIND_STRUCTURES));
             
-            //
-            // Loop through the targets to find the next one that needs energy
-            //
-            var ndx;
-            for (var i = 0; i < targets.length; i++) {
+                //
+                // Loop through the targets to find the next one that needs energy
+                //
+                var ndx;
+                for (var i = 0; i < targets.length; i++) {
                 
-                switch (targets[i].structureType) {
-                    case STRUCTURE_SPAWN:
-                    case STRUCTURE_EXTENSION:
-                    case STRUCTURE_TOWER:
-                        if (targets[i].energy < targets[i].energyCapacity) {
-                            ndx = i;
-                            i = targets.length;
-                        }
-                        break;
-                    case STRUCTURE_CONTAINER:
-                        if (targets[i].store.energy < targets[i].storeCapacity) {
-                            ndx = i;
-                            i = targets.length;
-                        }
-                        break;
+                    switch (targets[i].structureType) {
+                        case STRUCTURE_SPAWN:
+                        case STRUCTURE_EXTENSION:
+                        case STRUCTURE_TOWER:
+                            if (targets[i].energy < targets[i].energyCapacity) {
+                                ndx = i;
+                                i = targets.length;
+                            }
+                            break;
+                        case STRUCTURE_CONTAINER:
+                            if (_.sum(targets[i].store) < targets[i].storeCapacity) {
+                                ndx = i;
+                                i = targets.length;
+                            }
+                            break;
+                    }
+                }
+            
+                //
+                // If we found a structure to fill
+                //
+                if (ndx !== undefined) {   
+                    creep.memory.destination = targets[ndx].id;
                 }
             }
-            
-            //
-            // If we found a structure to fill
-            //
-            if (ndx !== undefined) {   
+                
+            if (creep.memory.destination) {
+                
+                var destination = Game.getObjectById(creep.memory.destination);
                 
                 //
                 // Attempt to transfer energy from the creep to the target
                 //
-                if (creep.transfer(targets[ndx], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    
+                var result = creep.transfer(destination, RESOURCE_ENERGY);
+                switch(result) {
                     //
                     // Couldn't transfer, too far away. Move towards the target
                     //
-                    creep.moveTo(targets[ndx], {
-                        visualizePathStyle: {
-                            stroke: '#0ff',
-                            lineStyle: 'dashed',
-                            opacity: .70,
-                        }
-                    });
+                    case ERR_NOT_IN_RANGE:
+                        creep.moveTo(destination, {
+                            visualizePathStyle: {
+                                stroke: '#0ff',
+                                lineStyle: 'dashed',
+                                opacity: .70,
+                            }
+                        });
+                        break;
+                    
+                    //
+                    // The structure is full
+                    //
+                    case ERR_FULL:
+                        creep.memory.destination = undefined;
+                        break;
                     
                 }
                 
                 if (creep.carry.energy == 0) {
-                        creep.memory.deliver = false;
+                    creep.memory.deliver = false;
+                    creep.memory.destination = undefined;
                 }
             }
             

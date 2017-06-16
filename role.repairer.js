@@ -10,6 +10,7 @@ var roleRepairer = {
         // If we're out of energy, go get some
         //
         if (!creep.memory.deliver && creep.carry.energy < creep.carryCapacity) {
+            creep.memory.destination = undefined;
             utils.harvest(creep);
         }
         else {
@@ -17,36 +18,58 @@ var roleRepairer = {
         }
         
         if (creep.memory.deliver) {
-            //
-            // Find the closest damaged structure (if any)
-            //
-            var sites = utils.sortSites('repair', creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < (structure.hitsMax / 3)
-            }));
-        
-            //
-            // If we found one, repair it
-            //
-            if (sites.length) {
             
-                var closestDamagedStructure = sites[0];
+            if (!creep.memory.destination) {
                 
-                // console.log('Repairer ' + creep.name + ' moving to ' + closestDamagedStructure.id + ' (' + closestDamagedStructure.structureType + ')');
+                //
+                // Find the closest damaged structure (if any)
+                //
+                var sites = utils.sortSites('repair', creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => structure.hits < structure.hitsMax
+                }));
+        
+                //
+                // If we found one, repair it
+                //
+                if (sites.length) {
+                    creep.memory.destination = sites[0].id;
+                }
+            }
+            
+            if (creep.memory.destination) {
+                
+                var closestDamagedStructure = Game.getObjectById(creep.memory.destination);
               
                 //
                 // Attempt repair
                 //
-                if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
-    
-                    //
-                    // Too far away, move to it
-                    //
-                    creep.moveTo(closestDamagedStructure);
+                var result = creep.repair(closestDamagedStructure);
+                switch(result) {
+                    
+                    case ERR_NOT_IN_RANGE:
+                        creep.moveTo(closestDamagedStructure);
+                        break;
+                        
+                    case ERR_NOT_ENOUGH_RESOURCES:
+                        creep.memory.deliver = false;
+                        creep.memory.destination = undefined;
+                        break;
+                        
+                    case OK:
+                        break;
+                        
+                    default:
+                        console.log('**** Cannot repair: ' + result);
+                        break;
                   
                 }
                     
+                //
+                // Out of energy, go get some next tick
+                //
                 if (creep.carry.energy == 0) {
                     creep.memory.deliver = false;
+                    creep.memory.destination = undefined;
                 }
                 
             }

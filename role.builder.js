@@ -16,7 +16,7 @@ var roleBuilder = {
         if ((creep.memory.building && creep.carry.energy == 0) ||
             !Game.getObjectById(creep.memory.constructionSite)) {
             creep.memory.building = false;
-            creep.memory.constructionSite = undefined;
+            creep.memory.destination = undefined;
         }
         
         //
@@ -33,60 +33,53 @@ var roleBuilder = {
         if(creep.memory.building) {
             
             //
-            // Reset creep's harvesting flag
-            //
-            creep.memory.harvesting = undefined;
-            
-            //
             // If we're already at a construction site and currently building,
             // don't bother looking for other sites
             //
-            if (creep.memory.constructionSite) {
-                creep.build(Game.constructionSites[creep.memory.constructionSite]);
-            }
-            
-            else {
+            if (!creep.memory.destination) {
                 
                 //
                 // Find any construction sites in this room, sorted by priorty
                 //
-                var targets = utils.sortSites('build', creep.room.find(FIND_CONSTRUCTION_SITES));
-
-                if(targets.length) {    
-                    //
-                    // Attempt to build 
-                    //
-                    if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                var target = creep.pos.findClosestByPath(
+                    utils.sortSites('build', creep.room.find(FIND_CONSTRUCTION_SITES)));
                     
-                        //
-                        // Couldn't build, too far away. Move to the site
-                        //
-                        creep.moveTo(targets[0], {
+                if (target) {
+                    creep.memory.destination = target.id;
+                }
+                
+            }
+            
+            if (creep.memory.destination) {
+                
+                //
+                // Attempt to build 
+                //
+                var result = creep.build(target);
+                switch(result) {
+                    
+                    case ERR_NOT_IN_RANGE:
+                        creep.moveTo(target, {
                             visualizePathStyle: { 
                                 stroke: '#f0f', 
                                 lineStyle: 'solid',
                                 opacity: .75
                             }
                         });
+                        break;
+                        
+                    case OK:
+                        break;
+                        
+                    default:
+                        console.log('**** Cannot build: ' + result);
+                        break;
                     
-                    }
-                
-                    //
-                    // If successful, store the site we've built on
-                    //
-                    else {
-                        creep.memory.constructionSite = targets[0].id;
-                    }
                 }
                 
-                //
-                // Else no targets available to build, repair
-                //
-                else {
-                    roleRepairer.run(creep);
-                }
+                   
             }
-
+                
         }
         
         //

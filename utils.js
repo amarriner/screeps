@@ -8,7 +8,7 @@ var utils = {
     defendRoom: function(roomName) {
         
         if (!Game.rooms[roomName]) {
-            console.log(' --> Cannot defend unknown room: ' + roomName);
+            console.log('**** Cannot defend unknown room: ' + roomName);
             return;
         }
         
@@ -255,14 +255,14 @@ var utils = {
                     // 0
                     //
                     case OK:
-                        console.log('Spawned creep ' + name);
+                        console.log('---- Spawned creep ' + name);
                         break;
                         
                     //
                     // -3
                     //
                     case ERR_NOT_ENOUGH_ENERGY:
-                        // console.log('Tried to spawn creep, not enough energy');
+                        // console.log('**** Tried to spawn creep, not enough energy');
                         break;
                         
                     //
@@ -272,7 +272,7 @@ var utils = {
                         break;
                         
                     default:
-                        console.log('Trying to spawn: ' + name + ': ' + result);       
+                        console.log('---- Trying to spawn: ' + name + ': ' + result);       
                 }
                 
                 //

@@ -10,13 +10,13 @@ module.exports = {
         {creepType: 'builder', max: 5},
         {creepType: 'upgrader', max: 5},
         {creepType: 'repairer', max: 5},
-        {creepType: 'defender', max: 1},
+        {creepType: 'defender', max: 3},
     ],
     
     //
     // Used by utils.spawnCreeps() to give creeps a default body
     //
-    defaultCreepParts: [WORK, CARRY, MOVE],
+    defaultCreepParts: [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
     defaultCreepRoleParts: {
         defender: [MOVE, MOVE, ATTACK, ATTACK, TOUGH, TOUGH],
     },
@@ -34,10 +34,10 @@ module.exports = {
         ],
         repair: [
             STRUCTURE_SPAWN,
+            STRUCTURE_ROAD,
             STRUCTURE_RAMPART,
             STRUCTURE_TOWER,
             STRUCTURE_CONTAINER,
-            STRUCTURE_ROAD,
         ],
         fill: [
             STRUCTURE_SPAWN,

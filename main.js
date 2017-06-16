@@ -17,7 +17,7 @@ module.exports.loop = function() {
         for (var i = 0; i < constants.maxCreeps.length; i++) {
     
             var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
-            console.log(constants.maxCreeps[i].creepType + " \t: " + creeps.length);
+            console.log('==== ' + constants.maxCreeps[i].creepType + " \t: " + creeps.length);
         }
         console.log('------------------------------------------------------------');
     }
@@ -28,7 +28,7 @@ module.exports.loop = function() {
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
             delete Memory.creeps[name];
-            console.log('Clearing non-existent creep memory:', name);
+            console.log('---- Clearing non-existent creep memory:', name);
         }
     }
     
