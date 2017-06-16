@@ -40,6 +40,7 @@ var roleHarvester = {
                 switch (targets[i].structureType) {
                     case STRUCTURE_SPAWN:
                     case STRUCTURE_EXTENSION:
+                    case STRUCTURE_TOWER:
                         if (targets[i].energy < targets[i].energyCapacity) {
                             ndx = i;
                             i = targets.length;

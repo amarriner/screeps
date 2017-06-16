@@ -3,6 +3,29 @@ var constants = require('constants');
 var utils = {
     
     // -------------------------------------------------------------------------
+    // Defend a room
+    // -------------------------------------------------------------------------
+    defendRoom: function(roomName) {
+        
+        if (!Game.rooms[roomName]) {
+            console.log(' --> Cannot defend unknown room: ' + roomName);
+            return;
+        }
+        
+        var hostiles = Game.rooms[roomName].find(FIND_HOSTILE_CREEPS);
+        
+        if(hostiles.length > 0) {
+        
+            var username = hostiles[0].owner.username;
+            Game.notify(`User ${username} spotted in room ${roomName}`);
+            var towers = Game.rooms[roomName].find(
+                FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
+            towers.forEach(tower => tower.attack(hostiles[0]));
+        }
+        
+    },
+    
+    // -------------------------------------------------------------------------
     // Sorts sites per the priorty array in constants.js
     // -------------------------------------------------------------------------
     sortSites: function(siteType, sites) {
@@ -151,9 +174,31 @@ var utils = {
     },
     
     // -------------------------------------------------------------------------
-    // Function to spawn creeps up to their max (defined in constants)
+    // Function to spawn creeps up to their max (defined in constants) in a room
     // -------------------------------------------------------------------------
-    spawnCreeps: function() {
+    spawnCreeps: function(roomName) {
+        
+        if (!roomName || !Game.rooms[roomName]) {
+            return;
+        }
+        
+        //
+        // Find a suitable spawn in this room
+        //
+        var spawns = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
+            filter: (structure) => {
+                return structure.structureType === STRUCTURE_SPAWN;
+            }
+        }).sort(function(a, b) {
+            return a.energy > b.energy ? -1 : (a.energy < b.energy ? 1 : 0);
+        });
+        
+        //
+        // Couldn't find a spawn, return
+        //
+        if (spawns.length === 0) {
+            return;
+        }
         
         //
         // Loop through array from constants.js which should be in priority order
@@ -162,46 +207,76 @@ var utils = {
         for (var i = 0; i < constants.maxCreeps.length; i++) {
             
             //
-            // Get all creeps of the current type to see if we're at the limit or not
+            // Get all creeps of the current type in the given room to see if we're at the limit or not
             //
-            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
+            //var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
+            var creeps = Game.rooms[roomName].find(FIND_MY_CREEPS, {
+                filter: (creep) => {
+                    return creep.memory.role === constants.maxCreeps[i].creepType;
+                }
+            });
+            
             if (creeps.length < constants.maxCreeps[i].max) {
+
+                //
+                // Default creep body to constants.defaultCreepParts unless there is a default body
+                // for the given role in constants.defaultCreepRoleParts in which case, use that
+                //
+                var parts = constants.defaultCreepParts;
+                if (constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType]) {
+                    parts = constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType];
+                }
 
                 //
                 // TODO: Need to fix name generation issues
                 //
                 var date = new Date();
                 var name = constants.maxCreeps[i].creepType + '_' + parseInt(date.getSeconds()) + parseInt(date.getMilliseconds());
-                var result = Game.spawns.Spawn1.createCreep(constants.defaultCreepParts, 
-                     name, { role: constants.maxCreeps[i].creepType });
+                
+                //
+                // Only build defenders if there are hostile creeps in the room. Other types always build up to max
+                //
+                var result;
+                if (constants.maxCreeps[i].creepType !== 'defender' || Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
+                    result = spawns[0].createCreep(parts, name, { role: constants.maxCreeps[i].creepType });
+                }
                 
                 //
                 // Handle spawn results if necessary
                 //
                 switch (result) {
                     //
+                    // undefined is when the spawn wasn't attempted
+                    //
+                    case undefined:
+                        break;
+                        
+                    //
                     // 0
                     //
                     case OK:
                         console.log('Spawned creep ' + name);
                         break;
+                        
                     //
                     // -3
                     //
                     case ERR_NOT_ENOUGH_ENERGY:
                         // console.log('Tried to spawn creep, not enough energy');
                         break;
+                        
                     //
                     // -4
                     //
                     case ERR_BUSY:
                         break;
+                        
                     default:
                         console.log('Trying to spawn: ' + name + ': ' + result);       
                 }
                 
                 //
-                // Return after first attempt at spawning
+                // Return after first attempt at spawning this tick
                 //
                 return;
 

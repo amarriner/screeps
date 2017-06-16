@@ -2,6 +2,7 @@ var constants = require('constants');
 var utils = require('utils');
 
 var roleBuilder = require('role.builder');
+var roleDefender = require('role.defender');
 var roleHarvester = require('role.harvester');
 var roleRepairer = require('role.repairer');
 var roleUpgrader = require('role.upgrader');
@@ -32,31 +33,50 @@ module.exports.loop = function() {
     }
     
     //
-    // If there are less creeps than the max, spawn them
+    // Loop through my rooms
     //
-    utils.spawnCreeps();
+    for (var roomName in Game.rooms) {
+        //
+        // If there are less creeps than the max, spawn them
+        //
+        utils.spawnCreeps(roomName);
+        
+        //
+        // Defend the room!
+        //
+        utils.defendRoom(roomName);
+    }
     
     //
     // Loop through each creep and perform their role function
     //
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        //creep.say(creep.memory.role);
         
-        if (creep.memory.role == 'builder') {
-            roleBuilder.run(creep);
+        switch (creep.memory.role) {
+            
+            case 'builder':
+                roleBuilder.run(creep);
+                break;
+                
+            case 'defender':
+                roleDefender.run(creep);
+                break;
+                
+            case 'harvester':
+                roleHarvester.run(creep);
+                break;
+                
+            case 'repairer':
+                roleRepairer.run(creep);
+                break;
+                
+            case 'upgrader':
+                roleUpgrader.run(creep);
+                break;
+            
         }
         
-        if (creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
-        }
-        
-        if (creep.memory.role == 'repairer') {
-            roleRepairer.run(creep);
-        }
-        
-        if (creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
     }
+    
 }

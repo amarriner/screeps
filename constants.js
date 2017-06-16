@@ -10,12 +10,16 @@ module.exports = {
         {creepType: 'builder', max: 5},
         {creepType: 'upgrader', max: 5},
         {creepType: 'repairer', max: 5},
+        {creepType: 'defender', max: 1},
     ],
     
     //
     // Used by utils.spawnCreeps() to give creeps a default body
     //
     defaultCreepParts: [WORK, CARRY, MOVE],
+    defaultCreepRoleParts: {
+        defender: [MOVE, MOVE, ATTACK, ATTACK, TOUGH, TOUGH],
+    },
     
     //
     // These arrays are used when searching for structures
@@ -31,11 +35,13 @@ module.exports = {
         repair: [
             STRUCTURE_SPAWN,
             STRUCTURE_RAMPART,
+            STRUCTURE_TOWER,
             STRUCTURE_CONTAINER,
             STRUCTURE_ROAD,
         ],
         fill: [
             STRUCTURE_SPAWN,
+            STRUCTURE_TOWER,
             STRUCTURE_EXTENSION,
             STRUCTURE_CONTAINER,
         ],
