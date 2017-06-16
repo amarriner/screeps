@@ -4,6 +4,7 @@ var utils = require('utils');
 var roleBuilder = require('role.builder');
 var roleDefender = require('role.defender');
 var roleHarvester = require('role.harvester');
+var roleMiner = require('role.miner');
 var roleRepairer = require('role.repairer');
 var roleUpgrader = require('role.upgrader');
 
@@ -13,13 +14,14 @@ module.exports.loop = function() {
     // Basic debug information every 100 ticks
     //
     if (Game.time % 100 == 0) { 
-        console.log('------------------------------------------------------------');
+        
         for (var i = 0; i < constants.maxCreeps.length; i++) {
     
             var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
-            console.log('==== ' + constants.maxCreeps[i].creepType + " \t: " + creeps.length);
+            console.log('==== ' + constants.maxCreeps[i].creepType + " \t: " + creeps.length + '/' + constants.maxCreeps[i].max);
+            
         }
-        console.log('------------------------------------------------------------');
+        
     }
     
     //
@@ -65,6 +67,10 @@ module.exports.loop = function() {
                 
             case 'harvester':
                 roleHarvester.run(creep);
+                break;
+                
+            case 'miner':
+                roleMiner.run(creep);
                 break;
                 
             case 'repairer':

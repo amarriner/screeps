@@ -278,7 +278,9 @@ var utils = {
                 //
                 // Return after first attempt at spawning this tick
                 //
-                return;
+                if (result !== undefined) {
+                    return;
+                }
 
             }
         }
