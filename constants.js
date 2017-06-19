@@ -12,14 +12,20 @@ module.exports = {
         {creepType: 'repairer', max: 5},
         {creepType: 'miner', max: 0},
         {creepType: 'defender', max: 3},
+        {creepType: 'scout', max: 0},
     ],
     
     //
     // Used by utils.spawnCreeps() to give creeps a default body
     //
-    defaultCreepParts: [WORK,WORK, CARRY, CARRY, MOVE, MOVE],
+    defaultCreepParts: [
+        [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+        [WORK, CARRY, MOVE],
+    ],
+    
     defaultCreepRoleParts: {
         defender: [MOVE, MOVE, ATTACK, ATTACK, TOUGH, TOUGH],
+        scout: [MOVE, CARRY, WORK, CLAIM],
     },
     
     //

@@ -1,6 +1,130 @@
 var constants = require('constants');
 
+// -------------------------------------------------------------------------
+// Get current available energy to build creeps in a room
+// -------------------------------------------------------------------------
+var getAvailableSpawnEnergy = function(roomName) {
+        
+    if (!roomName || !Game.rooms[roomName]) {
+        return 0;
+    }
+        
+    var energy = 0;
+    var structures = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
+        filter: (s) => {
+            return s.structureType == STRUCTURE_SPAWN ||
+                    s.structureType == STRUCTURE_EXTENSION
+        }
+    });
+        
+    for (var i = 0; i < structures.length; i++) {
+        energy += structures[i].energy;
+    }
+        
+    return energy;
+        
+};
+    
+// -------------------------------------------------------------------------
+// Get creep cost for an array of body parts
+// -------------------------------------------------------------------------
+var getCreepCost = function(body) {
+    var cost = 0;
+        
+    for (var i = 0; i < body.length; i++) {
+            
+        if (!BODYPART_COST[body[i]]) {
+            console.log('**** Invalid body part ' + body[i] + ' passed to utils.getCreepCost()');
+            return -1;
+        }
+            
+        cost += BODYPART_COST[body[i]];
+            
+    }
+        
+    return cost;
+};
+
 var utils = {
+    
+    getAvailableSpawnEnergy: getAvailableSpawnEnergy,
+    
+    getCreepCost: getCreepCost,
+    
+    printDebugInfo: function() {
+        console.log('==== CREEP TOTALS');
+        for (var i = 0; i < constants.maxCreeps.length; i++) {
+    
+            var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
+            console.log('==== ' + constants.maxCreeps[i].creepType + " \t: " + creeps.length + '/' + constants.maxCreeps[i].max);
+            
+        }
+    },
+    
+    //
+    buildExtensions: function(roomName) {
+        
+        if (!roomName) {
+            return;
+        }
+    
+        var room = Game.rooms[roomName];
+        if (!room) {
+            return;
+        }
+        
+        var limits = [0, 5, 10, 20, 30, 40, 50, 60];
+        var extensionLimit = limits[room.controller.level - 1];
+        var extensions = room.find(FIND_MY_STRUCTURES, {
+            filter: (s) => { return s.structureType == STRUCTURE_EXTENSION; }
+        }).length;
+
+        var sites = [];
+        for (var y = 0; y < 50; y++) {
+            for (var x = 0; x < 50; x++) {
+                var look = room.getPositionAt(x, y).look();
+                
+                var available = true;
+                for (var z = 0; z < look.length; z++) {
+                    if (look[z].terrain && look[z].terrain !== 'wall' && look[z].terrain !== 'lava') {
+                        available = false;
+                    }
+                    
+                    if (look[z].type && look[z].type === 'structure') {
+                        available = false;
+                    }
+                }
+                
+                if (available) {
+                    sites.push({x: x, y: y});        
+                }
+                
+            }
+        }
+        
+        return sites.length + ' :: ' + sites;
+
+    },
+    
+    // -------------------------------------------------------------------------
+    // Inter-room pathing, from Glenstorm...
+    // -------------------------------------------------------------------------
+    navToRoom: function(creep, targetRoom)
+    {
+        const route = Game.map.findRoute(creep.room, targetRoom, {
+        routeCallback(roomName, fromRoomName) {
+            // if(Game.map.isHostile(roomName)) { return Infinity; }
+            
+                return 1;
+            }});
+
+        if(route.length > 0) 
+        {
+            const exit = creep.pos.findClosestByRange(route[0].exit, {maxRooms: 1});
+            const path = creep.pos.findPathTo(exit, {maxRooms: 1});
+            creep.moveByPath(path);
+        }
+    },
     
     // -------------------------------------------------------------------------
     // Defend a room
@@ -209,20 +333,33 @@ var utils = {
             //
             // Get all creeps of the current type in the given room to see if we're at the limit or not
             //
-            //var creeps = _.filter(Game.creeps, (creep) => creep.memory.role == constants.maxCreeps[i].creepType);
             var creeps = Game.rooms[roomName].find(FIND_MY_CREEPS, {
                 filter: (creep) => {
                     return creep.memory.role === constants.maxCreeps[i].creepType;
                 }
             });
             
+            // console.log('**** ' + constants.maxCreeps[i].creepType + ' :: ' + creeps.length + ' < ' + constants.maxCreeps[i].max);    
+            
             if (creeps.length < constants.maxCreeps[i].max) {
+            
+                //
+                // Get current available energy to spawn a creep
+                //
+                var availableEnergy = getAvailableSpawnEnergy(roomName);
 
                 //
                 // Default creep body to constants.defaultCreepParts unless there is a default body
                 // for the given role in constants.defaultCreepRoleParts in which case, use that
                 //
-                var parts = constants.defaultCreepParts;
+                var parts;
+                for (var j = 0; j < constants.defaultCreepParts.length; j++) {
+                    if (getCreepCost(constants.defaultCreepParts[j]) <= availableEnergy) {
+                        parts = constants.defaultCreepParts[j];    
+                        j = constants.defaultCreepParts.length;
+                    }
+                }
+                
                 if (constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType]) {
                     parts = constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType];
                 }
@@ -236,8 +373,35 @@ var utils = {
                 //
                 // Only build defenders if there are hostile creeps in the room. Other types always build up to max
                 //
+                var build = false;
                 var result;
-                if (constants.maxCreeps[i].creepType !== 'defender' || Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
+                switch (constants.maxCreeps[i].creepType) {
+                    
+                    case 'defender':
+                        if (Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
+                            build = true;
+                        }
+                        break;
+                        
+                    case 'scout':
+                        var gcl = Game.gcl.level;
+                        var controllers = _.filter(Game.structures, 
+                            function(s) { 
+                                return s.structureType == STRUCTURE_CONTROLLER; 
+                            }).length;
+                            
+                        //console.log(Memory.expansions.length + ' :: ' + controllers + ' :: ' + gcl + ' :: ' + parts + ' :: ' + getCreepCost(parts));    
+                        if (Memory.expansions && Memory.expansions.length && controllers < gcl) {
+                            build = true;
+                        }
+                        break;
+                        
+                    default:
+                        build = true;
+                        
+                }
+                
+                if (parts && build) {
                     result = spawns[0].createCreep(parts, name, { role: constants.maxCreeps[i].creepType });
                 }
                 
