@@ -16,7 +16,7 @@ module.exports.loop = function() {
     //
     if (Game.time % 100 == 0) { 
         
-        utils.printDebugInfo();
+        utils.printDebugInfo();        
         
     }
     
