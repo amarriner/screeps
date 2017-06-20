@@ -2,6 +2,12 @@
 module.exports = {
     
     //
+    // Hard-coded STRUCTURE_EXTENSION limits since I don't think
+    // these are in the screeps Constants?
+    //
+    extensionLimits: [0, 5, 10, 20, 30, 40, 50, 60],
+
+    //
     // Used by utils.spawnCreeps() so that won't 
     // spawn creeps infinitely
     //

@@ -67,6 +67,13 @@ module.exports.loop = function() {
         // Defend the room!
         //
         utils.defendRoom(roomName);
+
+        //
+        // Every so often, check to see if we can build more extensions, and do so
+        //
+        if (utils.canBuildExtensions(Game.rooms[roomName]) && Game.time % 500) {
+            utils.buildExtensions(roomName);
+        }
     }
     
     //

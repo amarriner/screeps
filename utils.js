@@ -1,6 +1,109 @@
 var constants = require('constants');
 
 // -----------------------------------------------------------------------------
+// Determine whether we can build any extensions
+// -----------------------------------------------------------------------------
+/** param {Room} room */
+var canBuildExtensions = function(room) {
+   
+    if (!room) {
+        return false;
+    }
+
+    var extensionLimit = constants.extensionLimits[room.controller.level - 1];
+    
+    var extensions = room.find(FIND_MY_STRUCTURES, {
+        filter: (s) => { return s.structureType == STRUCTURE_EXTENSION; }
+    }).length;
+
+    var constructionSites = room.find(FIND_MY_CONSTRUCTION_SITES, {
+        filter: (s) => {
+            return s.structureType === STRUCTURE_EXTENSION;
+        }
+    }).length;
+
+    if ((extensions + constructionSites) >= extensionLimit) {
+        return false;
+    }
+
+    return true;
+};
+
+// -----------------------------------------------------------------------------
+// Determine whether a pos contains certain terrain
+// -----------------------------------------------------------------------------
+/** param {RoomPosition} pos */
+/** param {Array} terrain */
+var posHasTerrain = function(pos, terrain) {
+
+    if (!pos || !pos.x || !pos.y || terrain.length === 0) { 
+        return;
+    }
+
+    var look = pos.look();
+                
+    for (var i = 0; i < look.length; i++) {
+        if (look[i].terrain && terrain.indexOf(look[i].terrain) > -1) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+// -----------------------------------------------------------------------------
+// Determine whether a pos contains a certain (or any if undefined) structure
+// -----------------------------------------------------------------------------
+/** param {RoomPosition} pos */
+/** param {Array} structure */
+var posHasStructure = function(pos, structure) {
+
+    if (!pos || !pos.x || !pos.y) { 
+        return;
+    }
+
+    var look = pos.look();
+                
+    for (var i = 0; i < look.length; i++) {
+        if (look[i].type && look[i].type === 'structure') {
+
+            if (!structure) {
+                return true;
+            }
+
+            if (look[i].structure && structure.indexOf(look[i].structure.structureType) > -1) {
+                return true;
+            }
+
+        }
+    }
+
+    return false;
+};
+
+// -----------------------------------------------------------------------------
+// Determine whether a construction site can be placed (at the moment meaning
+// there isn't a structure on there already and terrain is valid)
+// -----------------------------------------------------------------------------
+/** param {RoomPosition} pos */
+var posCanHaveConstructionSite = function(pos) {
+
+    if (!pos || !pos.x || !pos.y) { 
+        return;
+    }    
+
+    if (posHasStructure(pos)) {
+        return false;
+    }
+
+    if (posHasTerrain(pos, ['wall', 'lava'])) {
+        return false;
+    }
+
+    return true;
+};
+
+// -----------------------------------------------------------------------------
 // Determine whether a creep has a specific body part
 // -----------------------------------------------------------------------------
 var creepHasBodyPart = function(creep, bodyPart) {
@@ -446,47 +549,119 @@ var spawnCreeps = function(roomName) {
 // -----------------------------------------------------------------------------
 // TODO: Look for suitable places to build extension nodes
 // -----------------------------------------------------------------------------
+/** param {String} roomName */
 var buildExtensions = function(roomName) {
         
-    if (!roomName) {
+    if (!roomName || !Game.rooms[roomName]) {
         return;
     }
     
-    var room = Game.rooms[roomName];
-    if (!room) {
+    //
+    // Figure out what the current extension limit is
+    // and how many we currently have in this room
+    //
+    var room = Game.rooms[roomName];      
+
+    //
+    // If we're already at the limit, return
+    //
+    if (!canBuildExtensions(room)) {
         return;
     }
-        
-    var limits = [0, 5, 10, 20, 30, 40, 50, 60];
-    var extensionLimit = limits[room.controller.level - 1];
-    var extensions = room.find(FIND_MY_STRUCTURES, {
-        filter: (s) => { return s.structureType == STRUCTURE_EXTENSION; }
-    }).length;
 
+    //
+    // Loop through all the RoomPositions in the room and score them based 
+    // on whether they're a "good" site for a group of 5 extensions
+    //
     var sites = [];
     for (var y = 0; y < 50; y++) {
         for (var x = 0; x < 50; x++) {
-            var look = room.getPositionAt(x, y).look();
-                
-            var available = true;
-            for (var z = 0; z < look.length; z++) {
-                if (look[z].terrain && look[z].terrain !== 'wall' && look[z].terrain !== 'lava') {
-                    available = false;
-                }
-                    
-                if (look[z].type && look[z].type === 'structure') {
-                    available = false;
-                }
+            
+            var available = false;
+            var pos = room.getPositionAt(x, y);
+
+            //
+            // Can we build a construction site at this RoomPosition?
+            //
+            if (posCanHaveConstructionSite(pos)) {
+                available = true;
             }
-                
+
+            //
+            // If we can build, push the RoomPosition to the array
+            //
             if (available) {
-                sites.push({x: x, y: y});        
+
+                var score = 0;
+
+                //
+                // Check the RoomPositions in each of the four cardinal directions
+                //
+                if (posCanHaveConstructionSite(room.getPositionAt(pos.x, pos.y - 1))) {
+                    score += 10;
+                }
+
+                if (posCanHaveConstructionSite(room.getPositionAt(pos.x, pos.y + 1))) {
+                    score += 10;
+                }
+
+                if (posCanHaveConstructionSite(room.getPositionAt(pos.x - 1, pos.y))) {
+                    score += 10;
+                }
+
+                if (posCanHaveConstructionSite(room.getPositionAt(pos.x + 1, pos.y))) {
+                    score += 10;
+                }
+
+                //
+                // If each of the four directions were empty, weight the score
+                // based on the distance to the closest spawn
+                //
+                // TODO: Make this better, ha
+                //
+                if (score === 40) {
+
+                    var closest = pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                        filter: (s) => {
+                            return s.structureType === STRUCTURE_SPAWN;
+                        }
+                    });
+
+                    var d = distance(pos, closest.pos);
+                    
+                    //
+                    // Don't put the center of the 5 extension cluster too
+                    // close to the spawn
+                    //
+                    if (d < 4) {
+                        d = 100;
+                    }
+
+                    score -= d;
+                    
+                    sites.push({x: x, y: y, score: score});
+
+                }
             }
             
         }
     }
         
-    return sites.length + ' :: ' + sites;
+    //
+    // Sort the sites found by their score
+    //
+    sites.sort(function(a, b) {
+        return a.score > b.score ? -1 : (a.score < b.score ? 1 : 0);
+    });
+
+    //
+    // Build the sites
+    //
+    room.createConstructionSite(sites[0].x, sites[0].y, STRUCTURE_EXTENSION);
+    room.createConstructionSite(sites[0].x, sites[0].y - 1, STRUCTURE_EXTENSION);
+    room.createConstructionSite(sites[0].x, sites[0].y + 1, STRUCTURE_EXTENSION);
+    room.createConstructionSite(sites[0].x - 1, sites[0].y, STRUCTURE_EXTENSION);
+    room.createConstructionSite(sites[0].x + 1, sites[0].y, STRUCTURE_EXTENSION);
 
 };
     
@@ -517,6 +692,14 @@ var utils = {
     spawnCreeps: spawnCreeps,
     
     creepHasBodyPart: creepHasBodyPart,
+
+    posHasTerrain: posHasTerrain,
+
+    posHasStructure: posHasStructure,
+
+    posCanHaveConstructionSite: posCanHaveConstructionSite,
+
+    canBuildExtensions: canBuildExtensions,
     
 };
 
