@@ -1,9 +1,24 @@
+var constants = require('constants');
 var utils = require('utils');
 
 var roleScout = {
     
     /** @param {Creep} creep **/
     run: function(creep) {
+        
+        //
+        // TODO: Fix hard-coded maxCreeps
+        //
+        if (_.filter(Game.creeps, (creep) => creep.memory.role === 'scout').length === 1) {
+            
+            var creeps = utils.sortCreepsBy(creep.room.name, 'energy');
+            
+            for (var i = 0; i < 5; i++) {
+                if (i < creeps.length) {
+                    creeps[i].memory.role = 'scout';
+                }
+            }
+        }
         
         //
         // Get the name of the highest priorty room from Memory.expansions
@@ -48,45 +63,55 @@ var roleScout = {
                 // Try to claim the controller in the first room in Memory.expansions
                 // If too far away, move there...
                 //
-                var result = creep.claimController(room.controller);
-                switch (result) {
+                if (utils.creepHasBodyPart(creep, CLAIM)) {
+                    
+                    var result = creep.claimController(room.controller);
+                    switch (result) {
                 
-                    case ERR_NOT_IN_RANGE:
-                        creep.moveTo(room.controller, {
-                                visualizePathStyle: {
-                                    stroke: '#ff0',
-                                    lineStyle: 'solid',
-                                    opacity: .70,
-                                }
-                            });
-                        break;
+                        case ERR_NOT_IN_RANGE:
+                            creep.moveTo(room.controller, {
+                                    visualizePathStyle: {
+                                        stroke: '#ff0',
+                                        lineStyle: 'solid',
+                                        opacity: .70,
+                                    }
+                                });
+                            break;
+                        
+                        case OK:
+                        
+                            //
+                            // Remove this room from the expansions priority list
+                            // 
+                            Memory.expansions.shift();
+                        
+                            //
+                            // Create construction site
+                            //
+                            room.createConstructionSite(24, 24, STRUCTURE_SPAWN);
+                        
+                            //
+                            // Job's done!
+                            //
+                            creep.suicide();
+                        
+                            break;
                     
-                    case OK:
-                        
-                        //
-                        // Remove this room from the expansions priority list
-                        //
-                        Memory.expansions.shift();
-                        
-                        //
-                        // Create a construction site for a spawn a little away from the controller
-                        //
+                        default:
+                            console.log('---- Trying to claim controller in room ' + room.name + ': ' + result);
+                    }
+                    
+                }
+                
+                else {
+                    
+                    if (room.controller.my && creep.memory.role === 'scout') {
+                        creep.memory.role = 'builder';    
+                    }
+                    
+                    else {
                         creep.moveTo(24, 24);
-                        
-                        //
-                        // Create construction site
-                        //
-                        room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_SPAWN);
-                        
-                        //
-                        // Change this creep's role to builder so it starts to build the room out
-                        //
-                        creep.memory.role = 'builder'
-                        
-                        break;
-                    
-                    default:
-                        console.log('---- Trying to claim controller in room ' + room.name + ': ' + result);
+                    }
                     
                 }
             }

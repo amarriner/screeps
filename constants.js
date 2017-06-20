@@ -6,19 +6,20 @@ module.exports = {
     // spawn creeps infinitely
     //
     maxCreeps: [
+        {creepType: 'defender', max: 5},
         {creepType: 'harvester', max: 5},
         {creepType: 'builder', max: 5},
         {creepType: 'upgrader', max: 5},
         {creepType: 'repairer', max: 5},
+        {creepType: 'scout', max:1},
         {creepType: 'miner', max: 0},
-        {creepType: 'defender', max: 3},
-        {creepType: 'scout', max: 0},
     ],
     
     //
     // Used by utils.spawnCreeps() to give creeps a default body
     //
     defaultCreepParts: [
+        // [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
         [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
         [WORK, CARRY, MOVE],
     ],
