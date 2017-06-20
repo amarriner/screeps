@@ -280,17 +280,17 @@ var printDebugInfo = function() {
 // Inter-room pathing, from Glenstorm...
 // -----------------------------------------------------------------------------
 /** param {Creep} creep */
-/** param {Room} targetRoom */
+/** param {String} targetRoom */
 var navToRoom = function(creep, targetRoom) {
+    
     const route = Game.map.findRoute(creep.room, targetRoom, {
-    routeCallback(roomName, fromRoomName) {
-        // if(Game.map.isHostile(roomName)) { return Infinity; }
+        routeCallback(roomName, fromRoomName) {
+            // if(Game.map.isHostile(roomName)) { return Infinity; }
         
             return 1;
         }});
 
-    if(route.length > 0) 
-    {
+    if(route.length > 0) {
         const exit = creep.pos.findClosestByRange(route[0].exit, {maxRooms: 1});
         const path = creep.pos.findPathTo(exit, {maxRooms: 1});
         creep.moveByPath(path);
@@ -432,8 +432,8 @@ var harvest = function(creep) {
     }
     else {
         harvestingResult = creep.harvest(source);
-    }
-                
+    }                
+
     //
     // Handle the result of the harvest
     //
@@ -446,6 +446,9 @@ var harvest = function(creep) {
 
         case OK:
             creep.memory.harvesting = source.id;
+            break;
+
+        default:
             break;
 
     }
@@ -489,13 +492,13 @@ var spawnCreeps = function(roomName) {
         //
         // Get all creeps of the current type in the given room to see if we're at the limit or not
         //
-        var creeps = Game.rooms[roomName].find(FIND_MY_CREEPS, {
-            filter: (creep) => {
-                return creep.memory.role === constants.maxCreeps[i].creepType;
-            }
+        var creeps = _.filter(Game.creeps, function(c) { 
+            return c.memory.role === constants.maxCreeps[i].creepType;
         });
             
-        // console.log('**** ' + constants.maxCreeps[i].creepType + ' :: ' + creeps.length + ' < ' + constants.maxCreeps[i].max);    
+        if (constants.maxCreeps[i].creepType === 'scout') {
+        //    console.log('**** ' + constants.maxCreeps[i].creepType + ' :: ' + creeps.length + ' < ' + constants.maxCreeps[i].max);    
+        }
             
         if (creeps.length < constants.maxCreeps[i].max) {
             
@@ -613,7 +616,7 @@ var spawnCreeps = function(roomName) {
 /** param {String} roomName */
 var buildExtensions = function(roomName) {
         
-    if (!roomName || !Game.rooms[roomName]) {
+    if (!roomName || !Game.rooms[roomName] || findStructures(roomName, [STRUCTURE_SPAWN]).length === 0) {
         return;
     }
     
@@ -622,6 +625,9 @@ var buildExtensions = function(roomName) {
     // and how many we currently have in this room
     //
     var room = Game.rooms[roomName];      
+    if (!room) {
+        return;
+    }
 
     //
     // If we're already at the limit, return

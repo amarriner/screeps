@@ -5,7 +5,7 @@ var roleBuilder = {
     
     /** param {Creep} creep **/
     run: function(creep) {
-        
+
         var target;
         var result;
 
@@ -26,7 +26,7 @@ var roleBuilder = {
         // If the creep is not building, and is carrying its full
         // capacity of enery, set the building memory flag to true
         //
-        if (!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
+        if (!creep.memory.building && creep.carry.energy === creep.carryCapacity) {
             creep.memory.building = true;
         }
         
@@ -34,6 +34,7 @@ var roleBuilder = {
         // If this creep should be (or is already) building
         //
         if(creep.memory.building) {
+
             
             //
             // If we're already at a construction site and currently building,
@@ -96,18 +97,25 @@ var roleBuilder = {
             }
         
             //
-            // Not building, upgrade
+            // Not building, harvest
             //
             else {
-                roleUpgrader.run(creep);
+                utils.harvest(creep);
             }
                 
         }
         
         //
-        // Not building, upgrade
+        // Not building, harvest
         //
         else {
+            utils.harvest(creep);
+        }
+
+        //
+        // If there are no construction sites, upgrade
+        //
+        if (creep.room.find(FIND_MY_CONSTRUCTION_SITES).length === 0) {
             roleUpgrader.run(creep);
         }
     }

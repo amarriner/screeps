@@ -17,7 +17,7 @@ module.exports = {
         {creepType: 'builder', max: 5},
         {creepType: 'upgrader', max: 5},
         {creepType: 'repairer', max: 5},
-        {creepType: 'scout', max:1},
+        {creepType: 'scout', max:0},
         {creepType: 'miner', max: 0},
     ],
     
@@ -32,7 +32,7 @@ module.exports = {
     
     defaultCreepRoleParts: {
         defender: [MOVE, MOVE, ATTACK, ATTACK, TOUGH, TOUGH],
-        scout: [MOVE, CARRY, WORK, CLAIM],
+        scout: [MOVE, MOVE, MOVE, CLAIM],
     },
     
     //
