@@ -1,6 +1,24 @@
 var constants = require('constants');
 
 // -----------------------------------------------------------------------------
+// Wrapper to room.find to filter on structure types
+// -----------------------------------------------------------------------------
+/** param {String} roomName */
+/** param {Array[STRUCTURE_*]} structureTypes */
+/** param {int} findConst */
+var findStructures = function(roomName, structureTypes, findConst) {
+    if (!roomName || !Game.rooms[roomName] || !structureTypes || structureTypes.length === 0) {
+        return [];
+    }
+
+    return Game.rooms[roomName].find((findConst !== undefined ? findConst : FIND_MY_STRUCTURES), {
+        filter: (s) => {
+            return structureTypes.indexOf(s.structureType) !== -1;
+        }
+    });
+};
+
+// -----------------------------------------------------------------------------
 // Find all energy sources in a room for a given creep
 // -----------------------------------------------------------------------------
 /** param {Creep} creep */
@@ -212,6 +230,40 @@ var getCreepCost = function(body) {
 };
 
 // -----------------------------------------------------------------------------
+// Get creep body parts array
+// -----------------------------------------------------------------------------
+/** param {String} roomName */
+/** param {int} constCreepIndex */
+/** return {Array[String]} */
+var getCreepBodyParts = function(roomName, constCreepIndex) {
+
+    if (!roomName || !Game.rooms[roomName]) {
+        return [];
+    }
+
+    var parts = [];
+    var availableEnergy = getAvailableSpawnEnergy(roomName);
+
+    //
+    // Default creep body to constants.defaultCreepParts unless there is a default body
+    // for the given role in constants.defaultCreepRoleParts in which case, use that
+    //
+    for (var i = 0; i < constants.defaultCreepParts.length; i++) {
+        if (getCreepCost(constants.defaultCreepParts[i]) <= availableEnergy) {
+            parts = constants.defaultCreepParts[i];    
+            i = constants.defaultCreepParts.length;
+        }
+    }
+                
+    if (constants.defaultCreepRoleParts[constants.maxCreeps[constCreepIndex].creepType]) {
+        parts = constants.defaultCreepRoleParts[constants.maxCreeps[constCreepIndex].creepType];
+    }
+
+    return parts;
+    
+};
+
+// -----------------------------------------------------------------------------
 // Print debug information to the console
 // -----------------------------------------------------------------------------
 var printDebugInfo = function() {
@@ -395,7 +447,7 @@ var harvest = function(creep) {
         case OK:
             creep.memory.harvesting = source.id;
             break;
-            
+
     }
             
 };
@@ -448,25 +500,9 @@ var spawnCreeps = function(roomName) {
         if (creeps.length < constants.maxCreeps[i].max) {
             
             //
-            // Get current available energy to spawn a creep
+            // Get creep body parts
             //
-            var availableEnergy = getAvailableSpawnEnergy(roomName);
-
-            //
-            // Default creep body to constants.defaultCreepParts unless there is a default body
-            // for the given role in constants.defaultCreepRoleParts in which case, use that
-            //
-            var parts;
-            for (var j = 0; j < constants.defaultCreepParts.length; j++) {
-                if (getCreepCost(constants.defaultCreepParts[j]) <= availableEnergy) {
-                    parts = constants.defaultCreepParts[j];    
-                    j = constants.defaultCreepParts.length;
-                }
-            }
-                
-            if (constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType]) {
-                parts = constants.defaultCreepRoleParts[constants.maxCreeps[i].creepType];
-            }
+            var parts = getCreepBodyParts(roomName, i);
 
             //
             // TODO: Need to fix name generation issues
@@ -475,23 +511,29 @@ var spawnCreeps = function(roomName) {
             var name = constants.maxCreeps[i].creepType + '_' + parseInt(date.getSeconds()) + parseInt(date.getMilliseconds());
                 
             //
-            // Only build defenders if there are hostile creeps in the room. Other types always build up to max
+            // Certain creeps will only be spawned under certain conditions
+            // even if we're under the max number allowed
+            //
+            // The build boolean will keep track of whether or not a spawn
+            // order should be executed
             //
             var build = false;
             var result;
-            
             switch (constants.maxCreeps[i].creepType) {
                     
+                //
+                // Only build defender creeps if there are hostile ones in the room
+                //
                 case 'defender':
                     if (Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
                         build = true;
                     }
                     break;
                     
+                //
+                // Only build miners if there's an extractor
+                //
                 case 'miner':
-                    
-                    // console.log('**** Miner ');
-                    
                     if (Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
                         filter: (s) => {
                             return s.structureType === STRUCTURE_EXTRACTOR;
@@ -500,18 +542,19 @@ var spawnCreeps = function(roomName) {
                         build = true;
                     }
                     break;
-                        
-                case 'scout':
                     
+                //
+                // Only build scouts if we're able to expand (our controller count
+                // is less than our GCL), and if there are expansion targets 
+                // in Memory.expansions
+                //
+                case 'scout':
                     var gcl = Game.gcl.level;
                     var controllers = _.filter(Game.structures, 
                         function(s) { 
                             return s.structureType == STRUCTURE_CONTROLLER; 
                         }).length;
                         
-                    // console.log('**** ' + constants.maxCreeps[i].creepType + ' :: ' + creeps.length + ' < ' + constants.maxCreeps[i].max + ' :: ' + gcl + ' :: ' + controllers);                         
-                            
-                    //console.log(Memory.expansions.length + ' :: ' + controllers + ' :: ' + gcl + ' :: ' + parts + ' :: ' + getCreepCost(parts));    
                     if (Memory.expansions && Memory.expansions.length && controllers < gcl) {
                         build = true;
                     }
@@ -522,7 +565,10 @@ var spawnCreeps = function(roomName) {
                     
             }
                 
-            if (parts && build) {
+            //
+            // If we found body parts, and if our spawn logic succeeded, attempt a spawn
+            //
+            if (parts.length > 0 && build) {
                 result = spawns[0].createCreep(parts, name, { role: constants.maxCreeps[i].creepType });
             }
                 
@@ -541,7 +587,6 @@ var spawnCreeps = function(roomName) {
                     break;
                         
                 case ERR_NOT_ENOUGH_ENERGY:
-                    // console.log('**** Tried to spawn creep, not enough energy');
                     break;
                         
                 case ERR_BUSY:
@@ -718,6 +763,10 @@ var utils = {
     canBuildExtensions: canBuildExtensions,
     
     findEnergySources: findEnergySources,
+
+    getCreepBodyParts: getCreepBodyParts,
+
+    findStructures: findStructures,
 
 };
 
