@@ -78,7 +78,7 @@ var roleRepairer = {
                 //
                 // Out of energy, go get some next tick
                 //
-                if (creep.carry.energy == 0) {
+                if (creep.carry.energy === 0) {
                     creep.memory.deliver = false;
                     creep.memory.destination = undefined;
                 }

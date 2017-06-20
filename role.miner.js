@@ -4,6 +4,9 @@ var roleMiner = {
     
     /** @param {Creep} creep **/
     run: function(creep) {
+
+        var target;
+        var result;
         
         if (!creep.memory.mine && !creep.memory.deliver) {
             creep.memory.mine = true;
@@ -36,7 +39,7 @@ var roleMiner = {
                 //
                 // Find minerals
                 //
-                var target = creep.pos.findClosestByPath(FIND_MINERALS);
+                target = creep.pos.findClosestByPath(FIND_MINERALS);
             
                 //
                 // No minerals in this room, no miner needed
@@ -64,7 +67,7 @@ var roleMiner = {
                             visualizePathStyle: {
                                 stroke: '#ff0',
                                 lineStyle: 'solid',
-                                opacity: .70,
+                                opacity: 0.70,
                             }
                         });
                         break;
@@ -89,7 +92,7 @@ var roleMiner = {
                 //
                 // Find storage
                 //
-                var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                     filter: (structure) => {
                         return structure.structureType == STRUCTURE_CONTAINER &&
                                 _.sum(structure.store) < structure.storeCapacity;
@@ -111,7 +114,7 @@ var roleMiner = {
                 
                 for (var resource in creep.carry) {
                     
-                    var result = creep.transfer(destination, resource);
+                    result = creep.transfer(destination, resource);
                     switch(result) {
                         
                         case ERR_NOT_IN_RANGE:
@@ -119,7 +122,7 @@ var roleMiner = {
                             visualizePathStyle: {
                                 stroke: '#ff0',
                                 lineStyle: 'dashed',
-                                opacity: .70,
+                                opacity: 0.70,
                             }
                         });
                             break;
@@ -138,6 +141,6 @@ var roleMiner = {
         }
     }
     
-}
+};
 
 module.exports = roleMiner;

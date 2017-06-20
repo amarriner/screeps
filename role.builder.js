@@ -6,6 +6,9 @@ var roleBuilder = {
     /** param {Creep} creep **/
     run: function(creep) {
         
+        var target;
+        var result;
+
         //
         // If the creep is currently building, but has is not carrying
         // any energy
@@ -13,7 +16,7 @@ var roleBuilder = {
         // if the constructionSite in memory no longer exists:
         // set the building memory flag to false
         //
-        if ((creep.memory.building && creep.carry.energy == 0) ||
+        if ((creep.memory.building && creep.carry.energy === 0) ||
             !Game.getObjectById(creep.memory.destination)) {
             creep.memory.building = false;
             creep.memory.destination = undefined;
@@ -41,7 +44,7 @@ var roleBuilder = {
                 //
                 // Find any construction sites in this room, sorted by priorty
                 //
-                var target = creep.pos.findClosestByPath(
+                target = creep.pos.findClosestByPath(
                     utils.sortSites('build', creep.room.find(FIND_CONSTRUCTION_SITES)));
                     
                 if (target) {
@@ -55,7 +58,7 @@ var roleBuilder = {
                 //
                 // Attempt to build 
                 //
-                var target = Game.getObjectById(creep.memory.destination);
+                target = Game.getObjectById(creep.memory.destination);
                 
                 if (!target) {
                     creep.memory.destination = undefined;
@@ -63,7 +66,7 @@ var roleBuilder = {
                     return;
                 }
                 
-                var result = creep.build(target);
+                result = creep.build(target);
                 switch(result) {
                     
                     case ERR_NOT_IN_RANGE:
@@ -71,7 +74,7 @@ var roleBuilder = {
                             visualizePathStyle: { 
                                 stroke: '#f0f', 
                                 lineStyle: 'solid',
-                                opacity: .75
+                                opacity: 0.75
                             }
                         });
                         break;

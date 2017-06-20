@@ -82,7 +82,7 @@ var roleHarvester = {
                             visualizePathStyle: {
                                 stroke: '#0ff',
                                 lineStyle: 'dashed',
-                                opacity: .70,
+                                opacity: 0.70,
                             }
                         });
                         break;
@@ -96,7 +96,7 @@ var roleHarvester = {
                     
                 }
                 
-                if (creep.carry.energy == 0) {
+                if (creep.carry.energy === 0) {
                     creep.memory.deliver = false;
                     creep.memory.destination = undefined;
                 }
@@ -114,6 +114,6 @@ var roleHarvester = {
         
     }
     
-}
+};
 
 module.exports = roleHarvester;

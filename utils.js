@@ -46,7 +46,7 @@ var getAvailableSpawnEnergy = function(roomName) {
     var structures = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
         filter: (s) => {
             return s.structureType == STRUCTURE_SPAWN ||
-                    s.structureType == STRUCTURE_EXTENSION
+                    s.structureType == STRUCTURE_EXTENSION;
         }
     });
         
@@ -137,6 +137,8 @@ var defendRoom = function(roomName) {
 // Sorts sites per the priorty array in constants.js
 // -----------------------------------------------------------------------------
 var sortSites = function(siteType, sites) {
+
+    var i;
         
     //
     // Return if no sites were passed in
@@ -156,14 +158,14 @@ var sortSites = function(siteType, sites) {
     // Instantiate and initiate sorted arrays
     //
     var sortedSites = [];
-    for (var i = 0; i <= constants.sortArrays[siteType].length; i++) {
+    for (i = 0; i <= constants.sortArrays[siteType].length; i++) {
         sortedSites[i] = [];
     }
 
     //
     // Loop through sites passed in
     //
-    for (var i = 0; i < sites.length; i++) {
+    for (i = 0; i < sites.length; i++) {
             
         var site = sites[i];
             
@@ -255,7 +257,7 @@ var harvest = function(creep) {
     // as harvesting this source so we can limit the number at a given 
     // source
     //
-    if (harvestingResult == 0) {
+    if (harvestingResult === 0) {
         creep.memory.harvesting = source.id;
     }
                 

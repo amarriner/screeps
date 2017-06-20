@@ -10,20 +10,22 @@ var roleScout = require('role.scout');
 var roleUpgrader = require('role.upgrader');
 
 module.exports.loop = function() {
+
+    var name;
     
     //
     // Basic debug information every 100 ticks
     //
-    if (Game.time % 100 == 0) { 
+    if (Game.time % 100 === 0) { 
         
         utils.printDebugInfo();        
-        
+
     }
     
     //
     // Loop through creeps, looking for deleted ones
     //
-    for(var name in Memory.creeps) {
+    for(name in Memory.creeps) {
         if(!Game.creeps[name]) {
             delete Memory.creeps[name];
             console.log('---- Clearing non-existent creep memory:', name);
@@ -70,7 +72,7 @@ module.exports.loop = function() {
     //
     // Loop through each creep and perform their role function
     //
-    for (var name in Game.creeps) {
+    for (name in Game.creeps) {
         var creep = Game.creeps[name];
         
         switch (creep.memory.role) {
@@ -107,4 +109,4 @@ module.exports.loop = function() {
         
     }
     
-}
+};

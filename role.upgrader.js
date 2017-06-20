@@ -9,7 +9,7 @@ var roleUpgrader = {
         // If the creep is currently upgrading, but has is not carrying
         // any energy, set the upgrading memory flag to false
         //
-        if (creep.memory.upgrading && creep.carry.energy == 0) {
+        if (creep.memory.upgrading && creep.carry.energy === 0) {
             creep.memory.destination = undefined;
             creep.memory.upgrading = false;
         }

@@ -73,7 +73,7 @@ var roleScout = {
                                     visualizePathStyle: {
                                         stroke: '#ff0',
                                         lineStyle: 'solid',
-                                        opacity: .70,
+                                        opacity: 0.70,
                                     }
                                 });
                             break;
@@ -118,6 +118,6 @@ var roleScout = {
         }
     }
     
-}
+};
 
 module.exports = roleScout;

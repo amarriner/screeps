@@ -1,0 +1,27 @@
+{
+  "name": "zaphod-screeps-21025",
+  "version": "1.0.0",
+  "description": "Screeps Game on zaphod.amarriner.com:21025",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amarriner/screeps.git"
+  },
+  "keywords": [
+    "screeps"
+  ],
+  "author": "Aaron Marriner <marrinea@strose.edu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amarriner/screeps/issues"
+  },
+  "homepage": "https://github.com/amarriner/screeps#readme",
+  "dependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-jsonlint": "^1.1.0"
+  }
+}
