@@ -1,6 +1,30 @@
 var constants = require('constants');
 
 // -----------------------------------------------------------------------------
+// Find all energy sources in a room for a given creep
+// -----------------------------------------------------------------------------
+/** param {Creep} creep */
+var findEnergySources = function(creep) {
+
+    if (!creep || !creep.room) {
+        return [];
+    }
+
+    return creep.room.find(FIND_SOURCES).concat(creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return (
+                creep.memory.role !== 'harvester' && 
+                (
+                    structure.structureType === STRUCTURE_CONTAINER ||
+                    structure.structureType === STRUCTURE_STORAGE
+                ) &&
+                structure.store.energy > creep.carry.energy
+            );
+        }
+    }));
+};
+
+// -----------------------------------------------------------------------------
 // Determine whether we can build any extensions
 // -----------------------------------------------------------------------------
 /** param {Room} room */
@@ -106,6 +130,8 @@ var posCanHaveConstructionSite = function(pos) {
 // -----------------------------------------------------------------------------
 // Determine whether a creep has a specific body part
 // -----------------------------------------------------------------------------
+/** param {Creep} creep */
+/** param {String} bodyPart */
 var creepHasBodyPart = function(creep, bodyPart) {
     
     if (!creep || !creep.body || !bodyPart || !BODYPART_COST[bodyPart]) {
@@ -124,6 +150,8 @@ var creepHasBodyPart = function(creep, bodyPart) {
 // -----------------------------------------------------------------------------
 // Sort the creeps in a room by the type of resource they're carrying
 // -----------------------------------------------------------------------------
+/** param {String} roomName */
+/** param {int} carryType */
 var sortCreepsBy = function(roomName, carryType) {
     
     if (!roomName || !Game.rooms[roomName] || RESOURCES_ALL.indexOf(carryType) === -1) {
@@ -139,6 +167,7 @@ var sortCreepsBy = function(roomName, carryType) {
 // -----------------------------------------------------------------------------
 // Get current available energy to build creeps in a room
 // -----------------------------------------------------------------------------
+/** param {String} roomName */
 var getAvailableSpawnEnergy = function(roomName) {
         
     if (!roomName || !Game.rooms[roomName]) {
@@ -164,6 +193,7 @@ var getAvailableSpawnEnergy = function(roomName) {
 // -----------------------------------------------------------------------------
 // Get creep cost for an array of body parts
 // -----------------------------------------------------------------------------
+/** param {Array[String]} body */
 var getCreepCost = function(body) {
     var cost = 0;
         
@@ -197,6 +227,8 @@ var printDebugInfo = function() {
 // -----------------------------------------------------------------------------
 // Inter-room pathing, from Glenstorm...
 // -----------------------------------------------------------------------------
+/** param {Creep} creep */
+/** param {Room} targetRoom */
 var navToRoom = function(creep, targetRoom) {
     const route = Game.map.findRoute(creep.room, targetRoom, {
     routeCallback(roomName, fromRoomName) {
@@ -216,6 +248,7 @@ var navToRoom = function(creep, targetRoom) {
 // -----------------------------------------------------------------------------
 // Defend a room
 // -----------------------------------------------------------------------------
+/** param {String} roomName */
 var defendRoom = function(roomName) {
         
     if (!Game.rooms[roomName]) {
@@ -239,6 +272,8 @@ var defendRoom = function(roomName) {
 // -----------------------------------------------------------------------------
 // Sorts sites per the priorty array in constants.js
 // -----------------------------------------------------------------------------
+/** param {String} siteType */
+/** param {Array[ConstructionSite]} sites */
 var sortSites = function(siteType, sites) {
 
     var i;
@@ -330,25 +365,17 @@ var harvest = function(creep) {
     }
         
     //
-    // Find all energy sources in this room
+    // Find closest energy sources in this room
     //
-    var source = creep.pos.findClosestByPath(
-        creep.room.find(FIND_SOURCES).concat(creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (
-                    creep.memory.role !== 'harvester' && 
-                    structure.structureType === (STRUCTURE_CONTAINER) &&
-                    structure.store.energy > creep.carry.energy
-                );
-            }
-        })
-    ));
+    var source = creep.pos.findClosestByPath(findEnergySources(creep));
     
     //
     // Attempt harvesting this source
     //
     var harvestingResult;
-    if (source && source.structureType && source.structureType === STRUCTURE_CONTAINER) {
+    if (source && source.structureType && (
+        source.structureType === STRUCTURE_CONTAINER ||
+        source.structureType === STRUCTURE_STORAGE)) {
         harvestingResult = creep.withdraw(source, RESOURCE_ENERGY);
     }
     else {
@@ -356,32 +383,19 @@ var harvest = function(creep) {
     }
                 
     //
-    // The harvesting was successful so mark this creep
-    // as harvesting this source so we can limit the number at a given 
-    // source
+    // Handle the result of the harvest
     //
-    if (harvestingResult === 0) {
-        creep.memory.harvesting = source.id;
-    }
-                
-    else if (harvestingResult == ERR_NOT_IN_RANGE) {
+    switch (harvestingResult) {
+
+        case ERR_NOT_IN_RANGE:
+            creep.moveTo(source);
+            creep.memory.harvesting = undefined;
+            break;
+
+        case OK:
+            creep.memory.harvesting = source.id;
+            break;
             
-        //
-        // Couldn't harvest, too far away. Move to the source
-        //
-        creep.moveTo(source, {
-            //visualizePathStyle: {
-            //    stroke: '#ff0', 
-            //    lineStyle: 'dashed',
-            //    opacity: .75,
-            //}
-        });
-            
-        //
-        // Reset this creep's harvesting memory 
-        //
-        creep.memory.harvesting = undefined;
-                
     }
             
 };
@@ -389,6 +403,7 @@ var harvest = function(creep) {
 // -----------------------------------------------------------------------------
 // Function to spawn creeps up to their max (defined in constants) in a room
 // -----------------------------------------------------------------------------
+/** param {String} roomName */
 var spawnCreeps = function(roomName) {
         
     if (!roomName || !Game.rooms[roomName]) {
@@ -547,7 +562,8 @@ var spawnCreeps = function(roomName) {
 };
 
 // -----------------------------------------------------------------------------
-// TODO: Look for suitable places to build extension nodes
+// Look for suitable places to build extension nodes
+// TODO: Improve the scoring
 // -----------------------------------------------------------------------------
 /** param {String} roomName */
 var buildExtensions = function(roomName) {
@@ -701,6 +717,8 @@ var utils = {
 
     canBuildExtensions: canBuildExtensions,
     
+    findEnergySources: findEnergySources,
+
 };
 
 module.exports = utils;
