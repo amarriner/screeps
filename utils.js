@@ -491,6 +491,7 @@ var buildExtensions = function(roomName) {
 };
     
 // =============================================================================    
+
 var utils = {
     
     sortCreepsBy: sortCreepsBy,
